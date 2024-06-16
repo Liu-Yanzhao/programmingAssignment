@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 from pathlib import Path
+from cryptography.fernet import Fernet
 
 from admin import admin
 from developer import developer
@@ -53,12 +54,32 @@ class authentication():
             print("Access Granted")
         else:
             print(f"Access Denied - {reason}")
-        
-        
 
     def _read_password_file(self):
         self._users = {}
         password_file = Path(__file__).resolve().parent / "data/passwords.ini"
+        key_file = Path(__file__).resolve().parent / "data/fernet.key"
+
+        try:
+            print(f"Reading user database from {key_file}")
+            key = ""
+            with open(key_file, "r") as fout:
+                lines = fout.readlines()
+                for line in lines:
+                    if line[0] == "#" or line[0] == "\n" or line[0] == " ":
+                        pass
+                    elif line.strip("\n") == "-----BEGIN FERNET KEY-----":
+                        pass
+                    elif line.strip("\n") == "-----BEGIN FERNET KEY-----":
+                        break
+                    else:
+                        key += line.strip("\n")
+            print(f"key is read from file {password_file}")
+        except FileNotFoundError:
+            print(f"key file {key_file} not found")
+
+        fernet = Fernet(key.encode())
+
         try:
             print(f"Reading user database from {password_file}")
             with open(password_file, "r") as fout:
@@ -68,7 +89,7 @@ class authentication():
                         pass
                     else:
                         line = [i.strip() for i in line.strip("\n").split(":")]
-                        self._users[line[0]] = [line[1], line[2]]
+                        self._users[line[0]] = [fernet.decrypt(line[1].encode()).decode(), line[2]]
                 
             print(f"{len(self._users)} user(s) read from file {password_file}")
         except FileNotFoundError:
