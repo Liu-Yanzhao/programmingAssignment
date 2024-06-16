@@ -18,5 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-class server():
-    pass
+class developer():
+    def __init__(self) -> None:
+        print("Starting as developer")

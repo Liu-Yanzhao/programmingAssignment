@@ -27,81 +27,51 @@ class productNotFoundError(Exception):
 class itemNotFoundError(Exception):
     pass
 
-class invalidNewValueError(Exception):
+class invalidValueError(Exception):
     def __init__(self, message):
         self.message = message
 
 class admin():
-    def __init__(self, username, password) -> None:
-        result = self.authentication(username, password)
-        if result:
-            self.main()
-        
-
-    def authentication(self, username, password):
-        self._read_password_file()
-
-        reason = ""
-        username_result, password_result = False, False
-        if username in self._users: 
-            username_result = True
-            if self._users[username] == password:
-                password_result = True
-            else:
-                reason = "Wrong password"
-        else:
-            reason = "User not found"
-
-        result = username_result and password_result
-        if result:
-            print("Access Granted")
-            self.main()
-        else:
-            print(f"Access Denied - {reason}")
-        return result
-
-    def _read_password_file(self):
-        self._users = {}
-        password_file = Path(__file__).resolve().parent / "database/passwords.ini"
-        try:
-            print(f"Reading user database from {password_file}")
-            with open(password_file, "r") as fout:
-                lines = fout.readlines()
-                for line in lines:
-                    if line[0] == "#" or line[0] == "\n" or line[0] == " ":
-                        pass
-                    else:
-                        line = [i.strip() for i in line.strip("\n").split(":")]
-                        self._users[line[0]] = line[1]
-                
-            print(f"{len(self._users)} user(s) read from file {password_file}")
-        except FileNotFoundError:
-            print(f"Password file {password_file} not found")
-
-    def main(self):
+    def __init__(self) -> None:
+        print("Starting as admin")
         self.retrieve_products()
-
-    def retrieve_products(self):
-        f = open(Path(__file__).resolve().parent / "database/products.json")
-        self.products = json.load(f)
-        f.close()
-        print(self.products)
         self.products_key = []
         for key in self.products:
             self.products_key.append(key)
-        
+
+    def retrieve_products(self):
+        f = open(Path(__file__).resolve().parent / "data/products.json", "r")
+        self.products = json.load(f)
+        f.close()
 
     def update_products(self):
         '''
         update_product saves the current product json 
         in primary storage into json file in secondary storage
         '''
-        f = open(Path(__file__).resolve().parent / "database/products.json")
-        string_products = str(self.products)
+        f = open(Path(__file__).resolve().parent / "data/products.json", "w")
+        string_products = json.dumps(self.products)
         f.write(string_products)
 
-    def new_product(self):
-        pass
+    def new_product(self, product_ID, product_name, category, description, price, quantity_available):
+        if product_ID in self.products_key:
+                raise invalidValueError("provided new product ID is not unique")
+        if not category in ["Electronics", "Mobile Devices", "Accessories", "Home Appliance", "Accessories"]:
+                raise invalidValueError("provided new product category is invalid")
+        if not self.is_float(str(price)):
+            raise invalidValueError("price is not a float")
+        if not str(quantity_available).isnumeric():
+            raise invalidValueError("Quanitity Available is not a whole number")
+        
+        self.products.update(
+            product_ID = {
+                "Product Name": product_name,
+                "Category": category,
+                "Description": description,
+                "Price": price,
+                "Quantity Available": quantity_available
+        })
+        self.update_products()
 
     def is_float(self, string):
         one_decimal_point = string.count('.') <= 1
@@ -109,27 +79,34 @@ class admin():
         return one_decimal_point and string_is_numeric
 
 
-    def change_product(self, product, item, new):
+    def change_product(self, product, item, new: str):
         ''' 
         product is product id of the proudct
         item can be: "Product ID", "Product Name", "Category", "Description", "Price", "Quantity Available"
         new is the new value to update product
         '''
         try:
+            new = str(new)
             if not product in self.products:
                 raise productNotFoundError
             if not item in ["Product ID", "Product Name", "Category", "Description", "Price", "Quantity Available"]:
                 raise itemNotFoundError
 
-            if item == "Product ID" and new in self.products_key:
-                raise invalidNewValueError("provided new product ID is not unique")
-            if item == "Product ID" and new in ["Electronics", "Mobile Devices", "Accessories", "Home Appliance", "Accessories"]:
-                raise invalidNewValueError("provided new product category is invalid")
-            if item == "Price" and not self.is_float(new):
-                raise invalidNewValueError("price is not a float")
-            if item == "Quantity Available" and not new.isnumeric():
-                raise invalidNewValueError("Quanitity Available is not a whole number")
-
+            if item == "Product ID" and not new in self.products_key:
+                raise invalidValueError("provided new product ID cannot be found")
+            elif item == "Category" and not new in ["Electronics", "Mobile Devices", "Accessories", "Home Appliance", "Accessories"]:
+                raise invalidValueError("provided new product category is invalid")
+            elif item == "Price":
+                if not self.is_float(new):
+                    raise invalidValueError("price is not a float")
+                else:
+                    new = float(new)
+            elif item == "Quantity Available":
+                if not new.isnumeric():
+                    raise invalidValueError("Quanitity Available is not a whole number")
+                else:
+                    new = int(new)
+            
             self.products[product][item] = new
             self.update_products()
 
@@ -137,11 +114,10 @@ class admin():
             print("product not found")
         except itemNotFoundError:
             print("item not found")
-        except invalidNewValueError as e:
+        except invalidValueError as e:
             print(e.message)
         except Exception as e:
             print(e)
-    
 
     def remove_product(self, product):
         '''
@@ -160,6 +136,7 @@ class admin():
             print("product not found")
 
 if __name__ == "__main__":
-    c = admin("client", "iLoveMrChan")
-    c.change_product("1001", "Quantity Available", "2001")
-
+    # testing
+    c = admin()
+    c.change_product("1001", "Quantity Available", 2001)
+    c.new_product("5001", "Blender", "Home Appliance", "spinny blade so cool!", 100, 100)
