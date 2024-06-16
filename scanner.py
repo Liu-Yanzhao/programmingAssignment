@@ -1,37 +1,37 @@
 import cv2
-# from pyzbar.pyzbar import decode
+from pyzbar.pyzbar import decode, ZBarSymbol
 
-cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
-if not (cap.isOpened()):
-    print("Could not open video device")
-while True: 
-    ret,frame= cap.read()
-    cv2.imshow("Live",frame)
-    cv2.waitKey(1)
-cv2.destroyAllWindows()
+class scanner():
+    def __init__(self, camera_id, delay, window_name):
+        self.camera_id = camera_id
+        self.delay = delay
+        self.window_name = window_name
 
+    def scan(self):
+        cap = cv2.VideoCapture(self.camera_id)
 
+        while True:
+            ret, frame = cap.read()
+            code = None
 
-# camera_id = -1
-# delay = 1
-# window_name = 'OpenCV pyzbar'
+            if ret:
+                code = self.decode_barcode(frame)
+                cv2.imshow(self.window_name, frame)
 
-# cap = cv2.VideoCapture(camera_id)
+            # breaks out of while loop when code is scanned or when 'q' is pressed
+            if cv2.waitKey(self.delay) & 0xFF == ord('q') or code:
+                break 
+        
+        cv2.destroyWindow(self.window_name)
+        return code
 
-# while True:
-#     ret, frame = cap.read()
+    def decode_barcode(self, frame):
+        for d in decode(frame, symbols=[ZBarSymbol.CODE128]):
+            code = d.data.decode()
+            return code
+        
 
-#     if ret:
-#         for d in decode(frame):
-#             s = d.data.decode()
-#             print(s)
-#             frame = cv2.rectangle(frame, (d.rect.left, d.rect.top),
-#                                   (d.rect.left + d.rect.width, d.rect.top + d.rect.height), (0, 255, 0), 3)
-#             frame = cv2.putText(frame, s, (d.rect.left, d.rect.top + d.rect.height),
-#                                 cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2, cv2.LINE_AA)
-#         cv2.imshow(window_name, frame)
-
-#     if cv2.waitKey(delay) & 0xFF == ord('q'):
-#         break
-
-# cv2.destroyWindow(window_name)
+if __name__ == "__main__":
+    s = scanner(0, 1, 'Scanner')
+    code = s.scan()
+    print(code)
