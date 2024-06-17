@@ -52,6 +52,7 @@ class admin():
         f = open(Path(__file__).resolve().parent / "data/products.json", "w")
         string_products = json.dumps(self.products)
         f.write(string_products)
+        f.close()
 
     def new_product(self, product_ID, product_name, category, description, price, quantity_available):
         if product_ID in self.products_key:

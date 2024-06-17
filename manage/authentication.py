@@ -29,10 +29,11 @@ class authentication():
         self.authenticate(username, password)
 
     def start_client(self):
-        if self.client_type == "admin":
-            return admin()
-        elif self.client_type == "dev":
-            return developer()
+        if self.result:
+            if self.client_type == "admin":
+                return admin()
+            elif self.client_type == "dev":
+                return developer()
 
     def authenticate(self, username, password):
         self._read_password_file()
@@ -98,4 +99,10 @@ class authentication():
 if __name__ == "__main__":
     auth = authentication("admin", "adminPassword123")
     c = auth.start_client()
-    print(c.products)
+
+    auth = authentication("admin", "newpassword")
+    c = auth.start_client()
+
+    auth = authentication("developer", "developerPassword123")
+    c = auth.start_client()
+    print(c._users)
