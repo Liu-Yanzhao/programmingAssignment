@@ -108,9 +108,32 @@ class developer():
             password += f"{i}:{str(self.fernet.encrypt(self._users[i][0].encode()))[2:-1]}:{self._users[i][1]}\n"
         self.update_file("data/passwords.ini", password)
 
+    def remove_user(self, username):
+        if not username in self._users:
+            raise invalidNewChange("username not found")
+        
+        self._users.pop(username)
+        password = "# you can add access control here as username:passwords:client_type.\n\n"
+        for i in self._users:
+            password += f"{i}:{str(self.fernet.encrypt(self._users[i][0].encode()))[2:-1]}:{self._users[i][1]}\n"
+        self.update_file("data/passwords.ini", password)
+
+    def add_user(self, username, password, client_type):
+        if not client_type in ["admin", "dev"]:
+            raise invalidNewChange("can only be 'admin' or 'dev'")
+
+        self._users.update({username: [password, client_type]})
+        password = "# you can add access control here as username:passwords:client_type.\n\n"
+        for i in self._users:
+            password += f"{i}:{str(self.fernet.encrypt(self._users[i][0].encode()))[2:-1]}:{self._users[i][1]}\n"
+        self.update_file("data/passwords.ini", password)
+
+
 if __name__ == "__main__":
     c = developer()
-    c.change_key()
-    c.change_access_control("admin", "password", "test")
-    c.change_access_control("admin", "client type", "admin")
-    c.change_access_control("admin", "username", "test")
+    # c.change_key()
+    # c.change_access_control("admin", "password", "test")
+    # c.change_access_control("admin", "client type", "admin")
+    # c.change_access_control("admin", "username", "test")
+    # c.add_user("test", "test", "admin")
+    # c.remove_user("test")
