@@ -1,9 +1,10 @@
 import logging
 from manage.authentication import authentication
 
-from kivy.app import App
 from kivymd.app import MDApp
-from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.anchorlayout import AnchorLayout
+from kivymd.uix.datatables import MDDataTable
+from kivy.metrics import dp
 from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition, ObjectProperty
 
 from kivy.core.window import Window
@@ -60,19 +61,26 @@ kv_string = """
 
 <AdminScreen>:
     BoxLayout:
-        orientation: 'vertical'
-        padding: 2
+        pos: 0, 1820
         Label:
-            text: 'admin screen'
+            text: 'Admin Dashboard'
             color: 0,0,0,1
+            size_hint: (.2, None)
+ 
+        MDIconButton:
+            icon: "exit-to-app"
+            style: "standard"
+
+    # Label:
+    #     text: "hi"       
+    #     color: 0,0,0,1
+
 
 <DevScreen>:
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 2
-        Label:
-            text: "devScreen"
-            color: 0,0,0,1
+    Label:
+        text: "devScreen"
+        color: 0,0,0,1
+        pos_hint:{'x':0, 'y':0}
 """
 
 class programLogging():
@@ -127,8 +135,40 @@ class AdminScreen(Screen):
         super(AdminScreen, self).__init__(**kwargs)
         self.c = None
 
-    def admin(self):
-        print("admin screen")
+    def on_enter(self):
+        self.load_table()
+    
+    def load_table(self):
+        layout = AnchorLayout()
+        self.load_data()
+        self.data_tables = MDDataTable(
+            pos_hint={'center_y': 0.5, 'center_x': 0.5},
+            size_hint=(0.9, 0.6),
+            use_pagination=True,
+            check=True,
+            column_data=[
+                ("Product ID", dp(30)),
+                ("Product Name", dp(50)),
+                ("Category", dp(30)),
+                ("Description", dp(90)),
+                ("Price", dp(30)),
+                ("Quantity Available", dp(30)), ],
+            row_data=self.data)
+        self.add_widget(self.data_tables)
+        return layout
+    
+    def load_data(self):
+        self.data = []
+        for item in self.c.products:
+            self.data.append((
+                item,
+                self.c.products[item]['Product Name'],
+                self.c.products[item]['Category'],
+                self.c.products[item]['Description'],
+                self.c.products[item]['Price'],
+                self.c.products[item]['Quantity Available'],
+            ))
+
         
 class DevScreen(Screen):
     c = ObjectProperty(None)
