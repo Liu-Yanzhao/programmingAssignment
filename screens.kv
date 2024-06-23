@@ -1,0 +1,71 @@
+<LoginScreen>:
+    orientation: 'vertical'
+    padding: 20
+    BoxLayout:
+        padding: 100
+        orientation: 'horizontal'
+        Label:
+            halign: 'right'
+            text: 'Username:'
+            color: 0,0,0,1
+            size_hint: (None, None)
+            height: 50
+            width: 300
+        TextInput:
+            id: username
+            multiline: False
+            cursor_color: (0,0,0,1)
+            size_hint: (.2, None)
+            height: 50
+
+    BoxLayout:
+        padding: 100
+        orientation: 'horizontal'
+        Label:
+            halign: 'right'
+            text: 'Password:'
+            color: 0,0,0,1
+            size_hint: (None, None)
+            height: 50
+            width: 300
+        TextInput:
+            id: password
+            password: True
+            multiline: False
+            cursor_color: (0,0,0,1)
+            size_hint: (.2, None)
+            height: 50
+
+    BoxLayout:
+        padding: 100
+        Button:
+            background_color: 
+            text: 'Login'
+            on_press: root.login(username.text, password.text)
+
+
+<adminScreen>
+    orientation: 'vertical'
+    padding: 2
+    text: "adminScreen" 
+
+<devScreen>
+    orientation: 'vertical'
+    padding: 2
+    text: "adminScreen"
+
+<Manager>:
+    id: screen_manager
+
+    loginScreen:loginScreen
+    adminScreen:adminScreen
+
+    loginScreen:
+        id: loginScreen 
+        name: "loginScreen"
+        manager: screen_manager
+
+    adminScreen:
+        id: adminScreen 
+        name: "adminScreen"
+        manager: screen_manager

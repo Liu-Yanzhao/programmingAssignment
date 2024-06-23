@@ -21,8 +21,8 @@
 from pathlib import Path
 from cryptography.fernet import Fernet
 
-from admin import admin
-from developer import developer
+from manage.admin import admin
+from manage.developer import developer
 
 class authentication():
     def __init__(self, username, password):
@@ -31,30 +31,35 @@ class authentication():
     def start_client(self):
         if self.result:
             if self.client_type == "admin":
-                return admin()
+                return self.client_type,  admin()
             elif self.client_type == "dev":
-                return developer()
+                return self.client_type, developer()
+        else:
+            return "unauthorised", None
 
     def authenticate(self, username, password):
-        self._read_password_file()
+        if username == "" or password == "":
+            self.result = False
+        else:
+            self._read_password_file()
 
-        reason = ""
-        username_result, password_result = False, False
-        if username in self._users: 
-            username_result = True
-            if self._users[username][0] == password:
-                password_result = True
+            reason = ""
+            username_result, password_result = False, False
+            if username in self._users: 
+                username_result = True
+                if self._users[username][0] == password:
+                    password_result = True
+                else:
+                    reason = "Wrong password"
             else:
-                reason = "Wrong password"
-        else:
-            reason = "User not found"
+                reason = "User not found"
 
-        self.result = username_result and password_result 
-        self.client_type = self._users[username][1]
-        if self.result:
-            print("Access Granted")
-        else:
-            print(f"Access Denied - {reason}")
+            self.result = username_result and password_result 
+            if self.result:
+                print("Access Granted")
+                self.client_type = self._users[username][1]
+            else:
+                print(f"Access Denied - {reason}")
 
     def _read_password_file(self):
         self._users = {}
@@ -97,12 +102,12 @@ class authentication():
             print(f"Password file {password_file} not found")
 
 if __name__ == "__main__":
-    auth = authentication("admin", "adminPassword123")
+    result, auth = authentication("admin", "adminPassword123")
     c = auth.start_client()
 
-    auth = authentication("admin", "newpassword")
+    result, auth = authentication("admin", "newpassword")
     c = auth.start_client()
 
-    auth = authentication("developer", "developerPassword123")
+    result, auth = authentication("developer", "developerPassword123")
     c = auth.start_client()
     print(c._users)

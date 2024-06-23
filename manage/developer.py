@@ -132,7 +132,7 @@ class developer():
 if __name__ == "__main__":
     c = developer()
     # c.change_key()
-    # c.change_access_control("admin", "password", "test")
+    # c.change_access_control("admin", "password", "adminPassword123")
     # c.change_access_control("admin", "client type", "admin")
     # c.change_access_control("admin", "username", "test")
     # c.add_user("test", "test", "admin")
