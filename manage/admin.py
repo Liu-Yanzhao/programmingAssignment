@@ -80,35 +80,28 @@ class admin():
         return one_decimal_point and string_is_numeric
 
 
-    def change_product(self, product, item, new: str):
+    def change_product(self, product_id, new):
         ''' 
         product is product id of the proudct
         item can be: "Product ID", "Product Name", "Category", "Description", "Price", "Quantity Available"
         new is the new value to update product
         '''
         try:
-            new = str(new)
-            if not product in self.products:
+            # Error
+            if not product_id in self.products:
                 raise productNotFoundError
-            if not item in ["Product ID", "Product Name", "Category", "Description", "Price", "Quantity Available"]:
+            if len(new) != 5: 
                 raise itemNotFoundError
-
-            if item == "Product ID" and not new in self.products_key:
-                raise invalidValueError("provided new product ID cannot be found")
-            elif item == "Category" and not new in ["Electronics", "Mobile Devices", "Accessories", "Home Appliance", "Accessories"]:
+            for i in ["Product Name", "Category", "Description", "Price", "Quantity Available"]:
+                if i not in new:
+                    raise itemNotFoundError
+            if not new["Category"] in ["Electronics", "Mobile Devices", "Accessories", "Home Appliance", "Accessories"]:
                 raise invalidValueError("provided new product category is invalid")
-            elif item == "Price":
-                if not self.is_float(new):
-                    raise invalidValueError("price is not a float")
-                else:
-                    new = float(new)
-            elif item == "Quantity Available":
-                if not new.isnumeric():
-                    raise invalidValueError("Quanitity Available is not a whole number")
-                else:
-                    new = int(new)
-            
-            self.products[product][item] = new
+            if not type(new["Price"]) == float:
+                raise invalidValueError("price is not a float")
+            if not type(new["Quantity Available"]) == int:
+                raise invalidValueError("Quanitity Available is not a whole number")
+    
             self.update_products()
 
         except productNotFoundError:
@@ -139,5 +132,11 @@ class admin():
 if __name__ == "__main__":
     # testing
     c = admin()
-    c.change_product("1001", "Quantity Available", 2001)
     c.new_product("5001", "Blender", "Home Appliance", "spinny blade so cool!", 100, 100)
+    c.change_product("1001", {
+        "Product Name": "Lenovo ThinkPad Z1",
+        "Category": "Electronics",
+        "Description": "High-performance laptop with SSD storage",
+        "Price": 1288.88,
+        "Quantity Available": 50
+    })
