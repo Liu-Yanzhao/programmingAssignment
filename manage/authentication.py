@@ -21,8 +21,8 @@
 from pathlib import Path
 from cryptography.fernet import Fernet
 
-from manage.admin import admin
-from manage.developer import developer
+from admin import admin
+from developer import developer
 
 class authentication():
     def __init__(self, username, password):
@@ -96,18 +96,18 @@ class authentication():
                     else:
                         line = [i.strip() for i in line.strip("\n").split(":")]
                         self._users[line[0]] = [fernet.decrypt(line[1].encode()).decode(), line[2]]
-                
+ 
             print(f"{len(self._users)} user(s) read from file {password_file}")
         except FileNotFoundError:
             print(f"Password file {password_file} not found")
 
 if __name__ == "__main__":
-    result, auth = authentication("admin", "adminPassword123")
-    c = auth.start_client()
+    auth = authentication("admin", "adminPassword123")
+    result, c = auth.start_client()
 
-    result, auth = authentication("admin", "newpassword")
-    c = auth.start_client()
+    auth = authentication("admin", "newpassword")
+    result, c = auth.start_client()
 
-    result, auth = authentication("developer", "developerPassword123")
-    c = auth.start_client()
+    auth = authentication("developer", "developerPassword123")
+    result, c = auth.start_client()
     print(c._users)
