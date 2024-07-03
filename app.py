@@ -173,7 +173,6 @@ class AdminScreen(Screen):
         return layout
     
     async def load_data(self):
-        print(f"requesting data")
         await c.publish(f"DATA_REQ/{randomID}", int_to_bytes_str(f"data"), qos=0x01)
         await c.subscribe([(f"DATA_RET/{randomID}", QOS_1)])
         message = await c.deliver_message()
@@ -191,7 +190,6 @@ class AdminScreen(Screen):
                 data_result[item]['Price'],
                 data_result[item]['Quantity Available'],
             ))
-        print(self.data)
 
 class DevScreen(Screen):
     c = ObjectProperty(None)
@@ -249,6 +247,6 @@ logger = logging.getLogger(__name__)
 if __name__ == '__main__':
     Window.clearcolor = (241, 248, 232, 1)
     Builder.load_string(kv_string)
-    # Window.fullscreen = 'auto'
+    Window.fullscreen = 'auto'
     programLogging()
     LoginApp().run()
