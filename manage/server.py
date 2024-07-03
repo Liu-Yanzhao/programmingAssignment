@@ -1,9 +1,13 @@
 import logging
 import asyncio
 import os
+import json
 from amqtt.broker import Broker
 from amqtt.client import MQTTClient
 from authentication import authentication
+
+from developer import developer
+from admin import admin
 
 from amqtt.codecs import int_to_bytes_str
 from amqtt.mqtt.constants import QOS_1, QOS_2
@@ -27,7 +31,7 @@ config = {
         "enabled": True,
         "plugins": ["topic_acl", "topic_taboo"],
         "acl": {
-            "auth_handler": ["AUTH_REQ/#", "AUTH_RET/#"],
+            "auth_handler": ["AUTH_REQ/#", "AUTH_RET/#", "DATA_REQ/#", "DATA_RET/#"],
         },
     },
 }
@@ -39,8 +43,13 @@ async def broker_coro():
     
     try:
         c = MQTTClient()
+        adminClient = admin()
+        devClient = developer() 
         await c.connect("mqtt://auth_handler:auth_handler@127.0.0.1:1883")
-        await c.subscribe([("AUTH_REQ/#", QOS_1)])
+        await c.subscribe([
+            ("AUTH_REQ/#", QOS_1),
+            ("DATA_REQ/#", QOS_1)
+            ])
         while True:
             message = await c.deliver_message()
             print("new message")
@@ -54,6 +63,8 @@ async def broker_coro():
                 auth = authentication(username, password)
                 result, client = auth.start_client()
                 await c.publish(f"AUTH_RET/{topic_name[9:14]}", int_to_bytes_str(result), qos=0x00)
+            elif topic_name[0:9] == "DATA_REQ/":
+                await c.publish(f"DATA_RET/{topic_name[9:14]}", int_to_bytes_str(json.dumps(adminClient.products)), qos=0x00)
     except ConnectionError:
         asyncio.get_event_loop().stop()
     

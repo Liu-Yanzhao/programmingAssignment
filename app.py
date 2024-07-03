@@ -2,6 +2,7 @@ import logging
 import random
 # from listener import listener
 import asyncio
+import json
 
 from amqtt.client import MQTTClient, ClientException
 from amqtt.codecs import int_to_bytes_str
@@ -125,7 +126,6 @@ class LoginScreen(Screen):
 
     async def login(self, username, password):
         print(f"Logging in with {username} and {password}")
-        randomID = random_ID_gen()
         await c.publish(f"AUTH_REQ/{randomID}", int_to_bytes_str(f"{username}, {password}"), qos=0x01)
         await c.subscribe([(f"AUTH_RET/{randomID}", QOS_1)])
 
@@ -141,6 +141,7 @@ class LoginScreen(Screen):
             self.manager.get_screen('devScreen').c = c
         self.ids['username'].text = ""
         self.ids['password'].text = ""
+        await c.unsubscribe([f"AUTH_RET/{randomID}"])
 
 class AdminScreen(Screen):
     c = ObjectProperty(None)
@@ -149,39 +150,48 @@ class AdminScreen(Screen):
         super(AdminScreen, self).__init__(**kwargs)
         self.c = None
 
-    # def on_enter(self):
-        # self.load_table()
+    def on_enter(self):
+        self.load_table()
     
-    # def load_table(self):
-    #     layout = AnchorLayout()
-    #     self.load_data()
-    #     self.data_tables = MDDataTable(
-    #         pos_hint={'center_y': 0.5, 'center_x': 0.5},
-    #         size_hint=(0.9, 0.6),
-    #         use_pagination=True,
-    #         check=True,
-    #         column_data=[
-    #             ("Product ID", dp(30)),
-    #             ("Product Name", dp(50)),
-    #             ("Category", dp(30)),
-    #             ("Description", dp(90)),
-    #             ("Price", dp(30)),
-    #             ("Quantity Available", dp(30)), ],
-    #         row_data=self.data)
-    #     self.add_widget(self.data_tables)
-    #     return layout
+    def load_table(self):
+        loop.run_until_complete(self.load_data())
+        layout = AnchorLayout()
+        self.data_tables = MDDataTable(
+            pos_hint={'center_y': 0.5, 'center_x': 0.5},
+            size_hint=(0.9, 0.6),
+            use_pagination=True,
+            check=True,
+            column_data=[
+                ("Product ID", dp(30)),
+                ("Product Name", dp(50)),
+                ("Category", dp(30)),
+                ("Description", dp(90)),
+                ("Price", dp(30)),
+                ("Quantity Available", dp(30)), ],
+            row_data=self.data)
+        self.add_widget(self.data_tables)
+        return layout
     
-    # def load_data(self):
-    #     self.data = []
-    #     for item in self.c.products:
-    #         self.data.append((
-    #             item,
-    #             self.c.products[item]['Product Name'],
-    #             self.c.products[item]['Category'],
-    #             self.c.products[item]['Description'],
-    #             self.c.products[item]['Price'],
-    #             self.c.products[item]['Quantity Available'],
-    #         ))
+    async def load_data(self):
+        print(f"requesting data")
+        await c.publish(f"DATA_REQ/{randomID}", int_to_bytes_str(f"data"), qos=0x01)
+        await c.subscribe([(f"DATA_RET/{randomID}", QOS_1)])
+        message = await c.deliver_message()
+        packet = message.publish_packet
+        result = str(packet.payload.data)[12:-2]
+        data_result = json.loads(result)
+
+        self.data = []
+        for item in data_result:
+            self.data.append((
+                item,
+                data_result[item]['Product Name'],
+                data_result[item]['Category'],
+                data_result[item]['Description'],
+                data_result[item]['Price'],
+                data_result[item]['Quantity Available'],
+            ))
+        print(self.data)
 
 class DevScreen(Screen):
     c = ObjectProperty(None)
@@ -213,6 +223,8 @@ class LoginApp(MDApp):
         # Start the asyncio event loop when the app starts
         global loop
         loop = asyncio.get_event_loop()
+        global randomID
+        randomID = random_ID_gen()
         loop.run_until_complete(self.uptime_coro())
         self.asyncio_loop_task = Clock.schedule_interval(self.run_asyncio_loop, 0.1)
 
@@ -237,6 +249,6 @@ logger = logging.getLogger(__name__)
 if __name__ == '__main__':
     Window.clearcolor = (241, 248, 232, 1)
     Builder.load_string(kv_string)
-    Window.fullscreen = 'auto'
+    # Window.fullscreen = 'auto'
     programLogging()
     LoginApp().run()
