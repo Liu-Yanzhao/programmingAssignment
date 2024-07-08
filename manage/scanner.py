@@ -6,30 +6,26 @@ class scanner():
         self.camera_id = camera_id
         self.delay = delay
         self.window_name = window_name
+        self.cap = cv2.VideoCapture(self.camera_id)
 
     def scan(self):
-        cap = cv2.VideoCapture(self.camera_id)
+        ret, frame = self.cap.read()
+        code = None
 
-        while True:
-            ret, frame = cap.read()
-            code = None
+        if ret:
+            code = self.decode_barcode(frame)
+            cv2.imshow(self.window_name, frame)
+            return code, frame
 
-            if ret:
-                code = self.decode_barcode(frame)
-                cv2.imshow(self.window_name, frame)
-
-            # breaks out of while loop when code is scanned or when 'q' is pressed
-            if cv2.waitKey(self.delay) & 0xFF == ord('q') or code:
-                break 
-        
+    def stop(self):
         cv2.destroyWindow(self.window_name)
-        return code
+        self.cap.release()
 
     def decode_barcode(self, frame):
         for d in decode(frame, symbols=[ZBarSymbol.CODE128]):
             code = d.data.decode()
             return code
-        
+
 
 if __name__ == "__main__":
     s = scanner(0, 1, 'Scanner')
