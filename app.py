@@ -293,7 +293,10 @@ class AdminScreen(Screen):
             self.code = code
             print(self.code)
             self.scan()
-    
+
+class ProductScreen(Screen):
+    def __init__(self, product_ID, product_name, category, description, price, quantity_available):
+        self.product_ID, self.product_name, self.category, self.description, self.price, self.quantity_available = product_ID, product_name, category, description, price, quantity_available
 
 
 class DevScreen(Screen):
