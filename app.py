@@ -281,6 +281,7 @@ class AdminScreen(Screen):
             Clock.unschedule(self.display_frame)
             self.s.stop()
             self.remove_widget(self.image)
+            self.camera_status = False
     
 
     def display_frame(self, *args, **kwargs):
