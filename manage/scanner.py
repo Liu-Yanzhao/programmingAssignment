@@ -25,6 +25,12 @@ class scanner():
         for d in decode(frame, symbols=[ZBarSymbol.CODE128]):
             code = d.data.decode()
             return code
+    
+    def code_check(self, code, data):
+        for item in range(len(data)):
+            if code == data[item][0]:
+                return item
+        return None
 
 
 if __name__ == "__main__":

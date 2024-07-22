@@ -79,7 +79,6 @@ class admin():
         string_is_numeric = string.replace(".", "").isnumeric()
         return one_decimal_point and string_is_numeric
 
-
     def change_product(self, product_id, new):
         ''' 
         product is product id of the proudct
@@ -97,21 +96,26 @@ class admin():
                     raise itemNotFoundError
             if not new["Category"] in ["Electronics", "Mobile Devices", "Accessories", "Home Appliance", "Accessories"]:
                 raise invalidValueError("provided new product category is invalid")
-            if not type(new["Price"]) == float:
+            if not self.is_float(new["Price"]):
                 raise invalidValueError("price is not a float")
-            if not type(new["Quantity Available"]) == int:
+            if not new["Quantity Available"].isnumeric():
                 raise invalidValueError("Quanitity Available is not a whole number")
     
+            new["Price"] = float(new["Price"])
+            new["Quantity Available"] = int(new["Quantity Available"])
+
+            self.products[product_id] = new
             self.update_products()
+            return "None"
 
         except productNotFoundError:
-            print("product not found")
+            return "product not found"
         except itemNotFoundError:
-            print("item not found")
+            return "item not found"
         except invalidValueError as e:
-            print(e.message)
+            return e.message
         except Exception as e:
-            print(e)
+            return e
 
     def remove_product(self, product):
         '''
@@ -134,9 +138,9 @@ if __name__ == "__main__":
     c = admin()
     c.new_product("5001", "Blender", "Home Appliance", "spinny blade so cool!", 100, 100)
     c.change_product("1001", {
-        "Product Name": "Lenovo ThinkPad Z1",
+        "Product Name": "smt new",
         "Category": "Electronics",
         "Description": "High-performance laptop with SSD storage",
-        "Price": 1288.88,
-        "Quantity Available": 50
+        "Price": "1288.88",
+        "Quantity Available": "50"
     })

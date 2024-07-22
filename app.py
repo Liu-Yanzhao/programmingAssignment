@@ -11,9 +11,10 @@ from amqtt.client import MQTTClient, ClientException
 from amqtt.codecs import int_to_bytes_str
 from amqtt.mqtt.constants import QOS_1, QOS_2
 from kivymd.app import MDApp
-from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.datatables import MDDataTable
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.button import MDFlatButton
 from kivy.metrics import dp
 from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition, ObjectProperty
 from kivy.clock import Clock
@@ -115,6 +116,130 @@ kv_string = """
 
 <ProductScreen>
     BoxLayout:
+        orientation: 'vertical'
+        BoxLayout: 
+            size_hint: (0.95, 0.1)
+            orientation: 'horizontal'
+            Label:
+                halign: 'right'
+                text: 'Product ID:'
+                color: 0,0,0,1
+                size_hint: (None, None)
+                height: 50
+                width: 300
+            TextInput:
+                id: product_id
+                multiline: False
+                readonly: True
+                cursor_color: (0,0,0,1)
+                size_hint: (.2, None)
+                height: 50
+
+        BoxLayout:
+            size_hint: (0.95, 0.1)
+            orientation: 'horizontal'
+            Label:
+                halign: 'right'
+                text: 'Product Name:'
+                color: 0,0,0,1
+                size_hint: (None, None)
+                height: 50
+                width: 300
+            TextInput:
+                id: product_name
+                multiline: False
+                cursor_color: (0,0,0,1)
+                size_hint: (.2, None)
+                height: 50
+        
+        BoxLayout:
+            size_hint: (0.95, 0.1)
+            orientation: 'horizontal'
+            Label:
+                halign: 'right'
+                text: 'Category:'
+                color: 0,0,0,1
+                size_hint: (None, None)
+                height: 50
+                width: 300
+            TextInput:
+                id: category
+                multiline: False
+                cursor_color: (0,0,0,1)
+                size_hint: (.2, None)
+                height: 50
+
+        BoxLayout:
+            size_hint: (0.95, 0.1)
+            orientation: 'horizontal'
+            Label:
+                halign: 'right'
+                text: 'Price:'
+                color: 0,0,0,1
+                size_hint: (None, None)
+                height: 50
+                width: 300
+            TextInput:
+                id: price
+                multiline: False
+                cursor_color: (0,0,0,1)
+                size_hint: (.2, None)
+                height: 50 
+        
+        BoxLayout:
+            size_hint: (0.95, 0.1)
+            orientation: 'horizontal'
+            Label:
+                halign: 'right'
+                text: 'Quantity Available:'
+                color: 0,0,0,1
+                size_hint: (None, None)
+                height: 50
+                width: 300
+            TextInput:
+                id: quantity_available
+                multiline: False
+                cursor_color: (0,0,0,1)
+                size_hint: (.2, None)
+                height: 50
+
+        BoxLayout:
+            size_hint: (0.95, 0.2)
+            orientation: 'horizontal'
+            Label:
+                halign: 'right'
+                text: 'Description:'
+                color: 0,0,0,1
+                size_hint: (None, None)
+                height: 200
+                width: 300
+            TextInput:
+                id: description
+                multiline: True
+                cursor_color: (0,0,0,1)
+                size_hint: (.2, None)
+                height: 200
+
+        BoxLayout:
+            size_hint_y: 0.1  # Use a smaller portion of the screen for buttons
+            padding: [10, 10]
+            spacing: 10
+
+            Label:
+                text: ''
+                size_hint: (.8, None)
+
+            MDFlatButton:
+                style: "filled"
+                text: "cancel"
+                on_press: app.root.current = "adminScreen"
+                size_hint: (.1, None)
+            MDRaisedButton:
+                text: "save"
+                style: "standard"
+                on_press: root.save()
+                size_hint: (.1, None)
+
 """
 
 class programLogging():
@@ -148,22 +273,22 @@ class LoginScreen(Screen):
         loop.run_until_complete(self.login(username, password))
 
     async def login(self, username, password):
-        print(f"Logging in with {username} and {password}")
-        await c.publish(f"AUTH_REQ/{randomID}", int_to_bytes_str(f"{username}, {password}"), qos=0x01)
-        await c.subscribe([(f"AUTH_RET/{randomID}", QOS_1)])
+        # print(f"Logging in with {username} and {password}")
+        # await c.publish(f"AUTH_REQ/{randomID}", int_to_bytes_str(f"{username}, {password}"), qos=0x01)
+        # await c.subscribe([(f"AUTH_RET/{randomID}", QOS_1)])
 
-        message = await c.deliver_message()
-        packet = message.publish_packet
-        result = str(packet.payload.data)[12:-2]
+        # message = await c.deliver_message()
+        # packet = message.publish_packet
+        # result = str(packet.payload.data)[12:-2]
 
-        # self.manager.current = 'adminScreen'
-        # self.manager.get_screen('adminScreen').c = c
-        if result == "authorised":
-            self.manager.current = 'adminScreen'
-            self.manager.get_screen('adminScreen').c = c
-        self.ids['username'].text = ""
-        self.ids['password'].text = ""
-        await c.unsubscribe([f"AUTH_RET/{randomID}"])
+        # if result == "authorised":
+        #     self.manager.current = 'adminScreen'
+        #     self.manager.get_screen('adminScreen').c = c
+        # self.ids['username'].text = ""
+        # self.ids['password'].text = ""
+        # await c.unsubscribe([f"AUTH_RET/{randomID}"])
+        self.manager.current = 'adminScreen'
+        self.manager.get_screen('adminScreen').c = c
 
 class AdminScreen(Screen):
     def __init__(self, **kwargs):
@@ -201,7 +326,7 @@ class AdminScreen(Screen):
             pos_hint={'center_y': 0.5, 'center_x': 0.5},
             size_hint=(0.9, 0.6),
             use_pagination=True,
-            check=True,
+            check=False,
             column_data=[
                 ("Product ID", dp(30)),
                 ("Product Name", dp(50)),
@@ -210,6 +335,7 @@ class AdminScreen(Screen):
                 ("Price", dp(30)),
                 ("Quantity Available", dp(30)), ],
             row_data=self.data)
+        self.data_tables.bind(on_row_press=self.row_press)
         self.add_widget(self.data_tables)
         self.ids['search'].text = ""
         return layout
@@ -221,7 +347,6 @@ class AdminScreen(Screen):
             pos_hint={'center_y': 0.5, 'center_x': 0.5},
             size_hint=(0.9, 0.6),
             use_pagination=True,
-            check=True,
             column_data=[
                 ("Product ID", dp(30)),
                 ("Product Name", dp(50)),
@@ -230,9 +355,22 @@ class AdminScreen(Screen):
                 ("Price", dp(30)),
                 ("Quantity Available", dp(30)), ],
             row_data=self.data)
+        self.data_tables.bind(on_row_press=self.row_press)
         self.add_widget(self.data_tables)
         return layout
     
+    def row_press(self, instance_table, instance_row):
+        selected_row_index = instance_row.index // 6
+        product_row = [str(i) for i in self.data[selected_row_index]]
+        self.manager.current = 'productScreen'
+        self.manager.get_screen('productScreen').c = c
+        self.manager.get_screen('productScreen').product_id = product_row[0]
+        self.manager.get_screen('productScreen').product_name = product_row[1]
+        self.manager.get_screen('productScreen').category = product_row[2]
+        self.manager.get_screen('productScreen').description = product_row[3]
+        self.manager.get_screen('productScreen').price = product_row[4]
+        self.manager.get_screen('productScreen').quantity_available = product_row[5]
+
     async def load_data(self):
         await c.publish(f"DATA_REQ/{randomID}", int_to_bytes_str(f"data"), qos=0x01)
         await c.subscribe([(f"DATA_RET/{randomID}", QOS_1)])
@@ -275,13 +413,115 @@ class AdminScreen(Screen):
         texture1.blit_buffer(buffer, colorfmt='bgr',bufferfmt='ubyte')
         self.image.texture = texture1
         if code:
-            self.code = code
-            print(self.code)
-            self.scan()
+            self.product_found(code)
+            self.scan() #switches off camera
+    
+    def product_found(self, code):
+        product_id = code [-4:len(code)]
+        item = self.s.code_check(product_id, self.data)
+        if item == None:
+            self.show_error("Invalid Code")
+        else:
+            self.manager.current = 'productScreen'
+            self.manager.get_screen('productScreen').c = c
+            self.manager.get_screen('productScreen').product_id = self.data[item][0]
+            self.manager.get_screen('productScreen').product_name = self.data[item][1]
+            self.manager.get_screen('productScreen').category = self.data[item][2]
+            self.manager.get_screen('productScreen').description = self.data[item][3]
+            self.manager.get_screen('productScreen').price = str(self.data[item][4])
+            self.manager.get_screen('productScreen').quantity_available = str(self.data[item][5])
+
+    def show_error(self, error):
+        self.dialog = MDDialog(
+            title="Warning! Error",
+            text=error,
+            buttons=[
+                MDFlatButton(
+                    text="OK",
+                    theme_text_color="Custom",
+                    on_release=self.close_dialog
+                ),
+            ],
+            auto_dismiss=False
+        )
+        self.dialog.open()
+    
+    def close_dialog(self, *args):
+        if self.dialog:
+            self.dialog.dismiss()
+            self.dialog = None
+
 
 class ProductScreen(Screen):
-    def __init__(self, product_ID, product_name, category, description, price, quantity_available):
-        self.product_ID, self.product_name, self.category, self.description, self.price, self.quantity_available = product_ID, product_name, category, description, price, quantity_available
+    def __init__(self, **kwargs):
+        super(ProductScreen, self).__init__(**kwargs)
+        self.reset_field() 
+
+    def reset_field(self):
+        self.product_id = ""
+        self.product_name = ""
+        self.category = ""
+        self.description = ""
+        self.price = ""
+        self.quantity_available = ""
+    
+    def on_enter(self, *args):
+        self.ids['product_id'].text = self.product_id
+        self.ids['product_name'].text = self.product_name
+        self.ids['category'].text = self.category
+        self.ids['description'].text = self.description
+        self.ids['price'].text = self.price
+        self.ids['quantity_available'].text = self.quantity_available
+
+    def save(self):
+        loop.run_until_complete(self.publish_new())
+        error = loop.run_until_complete(self.error_check())
+        if error == "None":
+            self.reset_field()
+            self.manager.current = 'adminScreen'
+            self.manager.get_screen('adminScreen').c = c
+        else:
+            self.show_error(error) 
+
+    async def publish_new(self):
+        new_data = {
+            "Product ID": self.ids['product_id'].text,
+            "Product Name" : self.ids['product_name'].text,
+            "Category" : self.ids['category'].text,
+            "Description" : self.ids['description'].text,
+            "Price" : self.ids['price'].text,
+            "Quantity Available" : self.ids['quantity_available'].text
+        }
+        await c.publish(f"DATA_PUB/{randomID}", int_to_bytes_str(json.dumps(new_data)),qos=0x01)
+    
+    async def error_check(self):
+        await c.subscribe([(f"DATA_ERROR/{randomID}", QOS_1)])
+        message = await c.deliver_message()
+        packet = message.publish_packet
+        result = str(packet.payload.data)[12:-2]
+        return result
+    
+    def show_error(self, error):
+        self.dialog = MDDialog(
+            title="Warning! Error",
+            text=error,
+            buttons=[
+                MDFlatButton(
+                    text="OK",
+                    theme_text_color="Custom",
+                    on_release=self.close_dialog
+                ),
+            ],
+            auto_dismiss=False
+        )
+        self.dialog.open()
+    
+    def close_dialog(self, *args):
+        if self.dialog:
+            self.dialog.dismiss()
+            self.dialog = None
+
+
 
 class LoginApp(MDApp):
     async def uptime_coro(self):
@@ -296,6 +536,7 @@ class LoginApp(MDApp):
         manager = ScreenManager(transition=NoTransition())
         manager.add_widget(LoginScreen(name="loginScreen"))
         manager.add_widget(AdminScreen(name="adminScreen"))
+        manager.add_widget(ProductScreen(name="productScreen"))
         return manager
 
     def on_start(self):
