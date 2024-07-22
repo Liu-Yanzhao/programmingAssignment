@@ -335,6 +335,7 @@ class AdminScreen(Screen):
             size_hint=(0.9, 0.6),
             use_pagination=True,
             check=False,
+            rows_num=len(self.data),
             column_data=[
                 ("Product ID", dp(30)),
                 ("Product Name", dp(50)),
@@ -354,7 +355,8 @@ class AdminScreen(Screen):
         self.data_tables = MDDataTable(
             pos_hint={'center_y': 0.5, 'center_x': 0.5},
             size_hint=(0.9, 0.6),
-            use_pagination=True,
+            use_pagination=False,
+            rows_num=len(self.data),
             column_data=[
                 ("Product ID", dp(30)),
                 ("Product Name", dp(50)),
