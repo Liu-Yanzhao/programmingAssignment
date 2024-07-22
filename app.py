@@ -228,18 +228,22 @@ kv_string = """
             size_hint_y: 0.1  # Use a smaller portion of the screen for buttons
             padding: [10, 10]
             spacing: 10
+            MDFlatButton:
+                text: "Delete"
+                id: delete
+                on_press: root.delete()
+                size_hint: (.1, None)
 
             Label:
                 text: ''
                 size_hint: (.8, None)
 
             MDFlatButton:
-                style: "filled"
-                text: "cancel"
+                text: "Cancel"
                 on_press: root.cancel()
                 size_hint: (.1, None)
             MDRaisedButton:
-                text: "save"
+                text: "Save"
                 style: "standard"
                 on_press: root.save()
                 size_hint: (.1, None)
@@ -460,6 +464,7 @@ class AdminScreen(Screen):
         self.manager.get_screen('productScreen').c = c
         self.manager.get_screen('productScreen').ids['product_id'].readonly = False
         self.manager.get_screen('productScreen').new = True
+        self.manager.get_screen('productScreen').ids['delete'].disabled = True
 
 
 class ProductScreen(Screen):
@@ -474,6 +479,7 @@ class ProductScreen(Screen):
         self.manager.get_screen('adminScreen').c = c
         self.ids['product_id'].readonly = True
         self.new = False
+        self.ids['delete'].disabled = False
 
     def reset_field(self):
         self.product_id = ""
@@ -500,6 +506,7 @@ class ProductScreen(Screen):
             self.manager.get_screen('adminScreen').c = c
             self.ids['product_id'].readonly = True
             self.new = False
+            self.ids['delete'].disabled = False
         else:
             self.show_error(error) 
 
@@ -513,7 +520,6 @@ class ProductScreen(Screen):
             "Quantity Available" : self.ids['quantity_available'].text
         }
         if self.new:
-            print(new_data)
             await c.publish(f"DATA_NEW/{randomID}", int_to_bytes_str(json.dumps(new_data)),qos=0x01)
         else:
             await c.publish(f"DATA_PUB/{randomID}", int_to_bytes_str(json.dumps(new_data)),qos=0x01)
@@ -545,7 +551,17 @@ class ProductScreen(Screen):
             self.dialog.dismiss()
             self.dialog = None
 
+    def delete(self):
+        loop.run_until_complete(self.delete_data(self.ids['product_id'].text))
 
+    async def delete_data(self, product_id):
+        await c.publish(f"DATA_DEL/{randomID}", int_to_bytes_str(product_id),qos=0x01)
+        self.reset_field()
+        self.manager.current = 'adminScreen'
+        self.manager.get_screen('adminScreen').c = c
+        self.ids['product_id'].readonly = True
+        self.new = False
+        self.ids['delete'].disabled = False
 
 class LoginApp(MDApp):
     async def uptime_coro(self):

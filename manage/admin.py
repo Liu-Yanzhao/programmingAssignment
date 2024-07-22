@@ -146,10 +146,10 @@ if __name__ == "__main__":
     # testing
     c = admin()
     c.new_product("5001", "Blender", "Home Appliance", "spinny blade so cool!", 100, 100)
-    # c.change_product("1001", {
-    #     "Product Name": "smt new",
-    #     "Category": "Electronics",
-    #     "Description": "High-performance laptop with SSD storage",
-    #     "Price": "1288.88",
-    #     "Quantity Available": "50"
-    # })
+    c.change_product("1001", {
+        "Product Name": "smt new",
+        "Category": "Electronics",
+        "Description": "High-performance laptop with SSD storage",
+        "Price": "1288.88",
+        "Quantity Available": "50"
+    })
