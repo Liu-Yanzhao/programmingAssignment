@@ -35,14 +35,15 @@ class admin():
     def __init__(self) -> None:
         print("Starting as admin")
         self.retrieve_products()
-        self.products_key = []
-        for key in self.products:
-            self.products_key.append(key)
+        
 
     def retrieve_products(self):
         f = open(Path(__file__).resolve().parent / "data/products.json", "r")
         self.products = json.load(f)
         f.close()
+        self.products_key = []
+        for key in self.products:
+            self.products_key.append(key)
 
     def update_products(self):
         '''

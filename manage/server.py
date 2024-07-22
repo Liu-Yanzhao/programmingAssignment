@@ -65,6 +65,7 @@ async def broker_coro():
                 result = auth.start_client()
                 await c.publish(f"AUTH_RET/{topic_name[9:14]}", int_to_bytes_str(result), qos=0x00)
             elif topic_name[0:9] == "DATA_REQ/":
+                adminClient.retrieve_products()
                 await c.publish(f"DATA_RET/{topic_name[9:14]}", int_to_bytes_str(json.dumps(adminClient.products)), qos=0x00)
             elif topic_name[0:9] == "DATA_PUB/":
                 new_data = json.loads(payload)
