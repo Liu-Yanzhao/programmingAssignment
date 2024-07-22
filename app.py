@@ -281,22 +281,22 @@ class LoginScreen(Screen):
         loop.run_until_complete(self.login(username, password))
 
     async def login(self, username, password):
-        # print(f"Logging in with {username} and {password}")
-        # await c.publish(f"AUTH_REQ/{randomID}", int_to_bytes_str(f"{username}, {password}"), qos=0x01)
-        # await c.subscribe([(f"AUTH_RET/{randomID}", QOS_1)])
+        print(f"Logging in with {username} and {password}")
+        await c.publish(f"AUTH_REQ/{randomID}", int_to_bytes_str(f"{username}, {password}"), qos=0x01)
+        await c.subscribe([(f"AUTH_RET/{randomID}", QOS_1)])
 
-        # message = await c.deliver_message()
-        # packet = message.publish_packet
-        # result = str(packet.payload.data)[12:-2]
+        message = await c.deliver_message()
+        packet = message.publish_packet
+        result = str(packet.payload.data)[12:-2]
 
-        # if result == "authorised":
-        #     self.manager.current = 'adminScreen'
-        #     self.manager.get_screen('adminScreen').c = c
-        # self.ids['username'].text = ""
-        # self.ids['password'].text = ""
-        # await c.unsubscribe([f"AUTH_RET/{randomID}"])
-        self.manager.current = 'adminScreen'
-        self.manager.get_screen('adminScreen').c = c
+        if result == "authorised":
+            self.manager.current = 'adminScreen'
+            self.manager.get_screen('adminScreen').c = c
+        self.ids['username'].text = ""
+        self.ids['password'].text = ""
+        await c.unsubscribe([f"AUTH_RET/{randomID}"])
+        # self.manager.current = 'adminScreen'
+        # self.manager.get_screen('adminScreen').c = c
 
 class AdminScreen(Screen):
     def __init__(self, **kwargs):
@@ -333,7 +333,7 @@ class AdminScreen(Screen):
         self.data_tables = MDDataTable(
             pos_hint={'center_y': 0.5, 'center_x': 0.5},
             size_hint=(0.9, 0.6),
-            use_pagination=True,
+            use_pagination=False,
             check=False,
             rows_num=len(self.data),
             column_data=[
@@ -611,6 +611,6 @@ logger = logging.getLogger(__name__)
 if __name__ == '__main__':
     Window.clearcolor = (241, 248, 232, 1)
     Builder.load_string(kv_string)
-    # Window.fullscreen = 'auto'
+    Window.fullscreen = 'auto'
     programLogging()
     LoginApp().run()
