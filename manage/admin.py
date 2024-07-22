@@ -54,25 +54,34 @@ class admin():
         f.write(string_products)
         f.close()
 
-    def new_product(self, product_ID, product_name, category, description, price, quantity_available):
-        if product_ID in self.products_key:
+    def new_product(self, product_id, product_name, category, description, price, quantity_available):
+        try:
+            if product_id in self.products_key:
                 raise invalidValueError("provided new product ID is not unique")
-        if not category in ["Electronics", "Mobile Devices", "Accessories", "Home Appliance", "Accessories"]:
+            if not category in ["Electronics", "Mobile Devices", "Accessories", "Home Appliance", "Accessories"]:
                 raise invalidValueError("provided new product category is invalid")
-        if not self.is_float(str(price)):
-            raise invalidValueError("price is not a float")
-        if not str(quantity_available).isnumeric():
-            raise invalidValueError("Quanitity Available is not a whole number")
-        
-        self.products.update(
-            product_ID = {
+            if not self.is_float(str(price)):
+                raise invalidValueError("price is not a float")
+            if not str(quantity_available).isnumeric():
+                raise invalidValueError("Quanitity Available is not a whole number")
+            
+            self.products[product_id] = {
                 "Product Name": product_name,
                 "Category": category,
                 "Description": description,
                 "Price": price,
                 "Quantity Available": quantity_available
-        })
-        self.update_products()
+            }
+            self.update_products()
+            return "None"
+        except productNotFoundError:
+            return "product not found"
+        except itemNotFoundError:
+            return "item not found"
+        except invalidValueError as e:
+            return e.message
+        except Exception as e:
+            return e
 
     def is_float(self, string):
         one_decimal_point = string.count('.') <= 1
@@ -137,10 +146,10 @@ if __name__ == "__main__":
     # testing
     c = admin()
     c.new_product("5001", "Blender", "Home Appliance", "spinny blade so cool!", 100, 100)
-    c.change_product("1001", {
-        "Product Name": "smt new",
-        "Category": "Electronics",
-        "Description": "High-performance laptop with SSD storage",
-        "Price": "1288.88",
-        "Quantity Available": "50"
-    })
+    # c.change_product("1001", {
+    #     "Product Name": "smt new",
+    #     "Category": "Electronics",
+    #     "Description": "High-performance laptop with SSD storage",
+    #     "Price": "1288.88",
+    #     "Quantity Available": "50"
+    # })

@@ -30,7 +30,7 @@ config = {
         "enabled": True,
         "plugins": ["topic_acl", "topic_taboo"],
         "acl": {
-            "auth_handler": ["AUTH_REQ/#", "AUTH_RET/#", "DATA_REQ/#", "DATA_RET/#", "DATA_PUB/#", "DATA_ERROR/#"],
+            "auth_handler": ["AUTH_REQ/#", "AUTH_RET/#", "DATA_REQ/#", "DATA_RET/#", "DATA_PUB/#", "DATA_NEW/#", "DATA_ERROR/#"],
         },
     },
 }
@@ -47,7 +47,8 @@ async def broker_coro():
         await c.subscribe([
             ("AUTH_REQ/#", QOS_1),
             ("DATA_REQ/#", QOS_1),
-            ("DATA_PUB/#", QOS_1)
+            ("DATA_PUB/#", QOS_1),
+            ("DATA_NEW/#", QOS_1)
             ])
         while True:
             message = await c.deliver_message()
@@ -73,8 +74,17 @@ async def broker_coro():
                     "Price": new_data["Price"],
                     "Quantity Available": new_data["Quantity Available"]
                 })
-                print(error)
-                print("\n\n\n\n\n")
+                await c.publish(f"DATA_ERROR/{topic_name[9:14]}", int_to_bytes_str(error), qos=0x00)
+            elif topic_name[0:9] == "DATA_NEW/":
+                new_data = json.loads(payload)
+                error = adminClient.new_product(
+                    new_data["Product ID"], 
+                    new_data["Product Name"],
+                    new_data["Category"],
+                    new_data["Description"],
+                    new_data["Price"],
+                    new_data["Quantity Available"]
+                )
                 await c.publish(f"DATA_ERROR/{topic_name[9:14]}", int_to_bytes_str(error), qos=0x00)
     except ConnectionError:
         asyncio.get_event_loop().stop()

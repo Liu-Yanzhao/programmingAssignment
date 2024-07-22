@@ -79,6 +79,10 @@ kv_string = """
         BoxLayout:
             orientation: 'horizontal'
             MDIconButton:
+                icon: "plus"
+                style: "standard"
+                on_press: root.add()
+            MDIconButton:
                 icon: "database-search-outline"
                 style: "standard"
                 on_press: root.search(search.text)
@@ -232,7 +236,7 @@ kv_string = """
             MDFlatButton:
                 style: "filled"
                 text: "cancel"
-                on_press: app.root.current = "adminScreen"
+                on_press: root.cancel()
                 size_hint: (.1, None)
             MDRaisedButton:
                 text: "save"
@@ -450,12 +454,26 @@ class AdminScreen(Screen):
         if self.dialog:
             self.dialog.dismiss()
             self.dialog = None
+    
+    def add(self):
+        self.manager.current = 'productScreen'
+        self.manager.get_screen('productScreen').c = c
+        self.manager.get_screen('productScreen').ids['product_id'].readonly = False
+        self.manager.get_screen('productScreen').new = True
 
 
 class ProductScreen(Screen):
     def __init__(self, **kwargs):
         super(ProductScreen, self).__init__(**kwargs)
+        self.new = False
         self.reset_field() 
+
+    def cancel(self):
+        self.reset_field()
+        self.manager.current = 'adminScreen'
+        self.manager.get_screen('adminScreen').c = c
+        self.ids['product_id'].readonly = True
+        self.new = False
 
     def reset_field(self):
         self.product_id = ""
@@ -480,6 +498,8 @@ class ProductScreen(Screen):
             self.reset_field()
             self.manager.current = 'adminScreen'
             self.manager.get_screen('adminScreen').c = c
+            self.ids['product_id'].readonly = True
+            self.new = False
         else:
             self.show_error(error) 
 
@@ -492,7 +512,11 @@ class ProductScreen(Screen):
             "Price" : self.ids['price'].text,
             "Quantity Available" : self.ids['quantity_available'].text
         }
-        await c.publish(f"DATA_PUB/{randomID}", int_to_bytes_str(json.dumps(new_data)),qos=0x01)
+        if self.new:
+            print(new_data)
+            await c.publish(f"DATA_NEW/{randomID}", int_to_bytes_str(json.dumps(new_data)),qos=0x01)
+        else:
+            await c.publish(f"DATA_PUB/{randomID}", int_to_bytes_str(json.dumps(new_data)),qos=0x01)
     
     async def error_check(self):
         await c.subscribe([(f"DATA_ERROR/{randomID}", QOS_1)])
