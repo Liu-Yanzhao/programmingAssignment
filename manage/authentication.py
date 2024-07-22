@@ -21,21 +21,15 @@
 from pathlib import Path
 from cryptography.fernet import Fernet
 
-from admin import admin
-from developer import developer
-
 class authentication():
     def __init__(self, username, password):
         self.authenticate(username, password)
 
     def start_client(self):
         if self.result:
-            if self.client_type == "admin":
-                return self.client_type,  admin()
-            elif self.client_type == "dev":
-                return self.client_type, developer()
+            return "authorised"
         else:
-            return "unauthorised", None
+            return "unauthorised"
 
     def authenticate(self, username, password):
         if username == "" or password == "":
@@ -47,7 +41,7 @@ class authentication():
             username_result, password_result = False, False
             if username in self._users: 
                 username_result = True
-                if self._users[username][0] == password:
+                if self._users[username] == password:
                     password_result = True
                 else:
                     reason = "Wrong password"
@@ -57,7 +51,6 @@ class authentication():
             self.result = username_result and password_result 
             if self.result:
                 print("Access Granted")
-                self.client_type = self._users[username][1]
             else:
                 print(f"Access Denied - {reason}")
 
@@ -95,7 +88,7 @@ class authentication():
                         pass
                     else:
                         line = [i.strip() for i in line.strip("\n").split(":")]
-                        self._users[line[0]] = [fernet.decrypt(line[1].encode()).decode(), line[2]]
+                        self._users[line[0]] = fernet.decrypt(line[1].encode()).decode()
  
             print(f"{len(self._users)} user(s) read from file {password_file}")
         except FileNotFoundError:

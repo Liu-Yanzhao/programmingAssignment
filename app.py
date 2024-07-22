@@ -115,19 +115,6 @@ kv_string = """
 
 <ProductScreen>
     BoxLayout:
-
-<DevScreen>:
-    BoxLayout:
-        pos: 0, 1820
-        Label:
-            text: 'Developer Dashboard'
-            color: 0,0,0,1
-            size_hint: (.2, None)
-
-        MDIconButton:
-            icon: "exit-to-app"
-            style: "standard"
-            on_press: app.root.current = "loginScreen"
 """
 
 class programLogging():
@@ -161,25 +148,22 @@ class LoginScreen(Screen):
         loop.run_until_complete(self.login(username, password))
 
     async def login(self, username, password):
-        # print(f"Logging in with {username} and {password}")
-        # await c.publish(f"AUTH_REQ/{randomID}", int_to_bytes_str(f"{username}, {password}"), qos=0x01)
-        # await c.subscribe([(f"AUTH_RET/{randomID}", QOS_1)])
+        print(f"Logging in with {username} and {password}")
+        await c.publish(f"AUTH_REQ/{randomID}", int_to_bytes_str(f"{username}, {password}"), qos=0x01)
+        await c.subscribe([(f"AUTH_RET/{randomID}", QOS_1)])
 
-        # message = await c.deliver_message()
-        # packet = message.publish_packet
-        # result = str(packet.payload.data)[12:-2]
+        message = await c.deliver_message()
+        packet = message.publish_packet
+        result = str(packet.payload.data)[12:-2]
 
-        self.manager.current = 'adminScreen'
-        self.manager.get_screen('adminScreen').c = c
-        # if result == "admin":
-        #     self.manager.current = 'adminScreen'
-        #     self.manager.get_screen('adminScreen').c = c
-        # elif result == "dev":
-        #     self.manager.current = 'devScreen'
-        #     self.manager.get_screen('devScreen').c = c
-        # self.ids['username'].text = ""
-        # self.ids['password'].text = ""
-        # await c.unsubscribe([f"AUTH_RET/{randomID}"])
+        # self.manager.current = 'adminScreen'
+        # self.manager.get_screen('adminScreen').c = c
+        if result == "authorised":
+            self.manager.current = 'adminScreen'
+            self.manager.get_screen('adminScreen').c = c
+        self.ids['username'].text = ""
+        self.ids['password'].text = ""
+        await c.unsubscribe([f"AUTH_RET/{randomID}"])
 
 class AdminScreen(Screen):
     def __init__(self, **kwargs):
@@ -299,15 +283,6 @@ class ProductScreen(Screen):
     def __init__(self, product_ID, product_name, category, description, price, quantity_available):
         self.product_ID, self.product_name, self.category, self.description, self.price, self.quantity_available = product_ID, product_name, category, description, price, quantity_available
 
-
-class DevScreen(Screen):
-    def __init__(self, **kwargs):
-        super(DevScreen, self).__init__(**kwargs)
-        self.c = None
-
-    def developer(self):
-        print("developer screen")
-
 class LoginApp(MDApp):
     async def uptime_coro(self):
         global c
@@ -321,7 +296,6 @@ class LoginApp(MDApp):
         manager = ScreenManager(transition=NoTransition())
         manager.add_widget(LoginScreen(name="loginScreen"))
         manager.add_widget(AdminScreen(name="adminScreen"))
-        manager.add_widget(DevScreen(name="devScreen"))
         return manager
 
     def on_start(self):

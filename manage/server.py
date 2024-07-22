@@ -6,7 +6,6 @@ from amqtt.broker import Broker
 from amqtt.client import MQTTClient
 from authentication import authentication
 
-from developer import developer
 from admin import admin
 
 from amqtt.codecs import int_to_bytes_str
@@ -44,7 +43,6 @@ async def broker_coro():
     try:
         c = MQTTClient()
         adminClient = admin()
-        devClient = developer() 
         await c.connect("mqtt://auth_handler:auth_handler@127.0.0.1:1883")
         await c.subscribe([
             ("AUTH_REQ/#", QOS_1),
@@ -61,7 +59,7 @@ async def broker_coro():
             if topic_name[0:9] == "AUTH_REQ/":
                 username, password = payload.split(", ")
                 auth = authentication(username, password)
-                result, client = auth.start_client()
+                result = auth.start_client()
                 await c.publish(f"AUTH_RET/{topic_name[9:14]}", int_to_bytes_str(result), qos=0x00)
             elif topic_name[0:9] == "DATA_REQ/":
                 await c.publish(f"DATA_RET/{topic_name[9:14]}", int_to_bytes_str(json.dumps(adminClient.products)), qos=0x00)
