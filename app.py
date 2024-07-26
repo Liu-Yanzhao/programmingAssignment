@@ -1,31 +1,38 @@
-import logging
-import random
-# from listener import listener
-import asyncio
-import json
-import cv2
-from kivy.uix.image import Image
+# Importing required libraries
+import cv2 # OpenCV for image and video processing
+import json # JSON library for parsing JSON data
+import random # Random library for generating random numbers
+import logging # logging libraries for logging messages
+import asyncio # Asyncio library for asynchronous programming
+
+# Importing user-defined libraries
 from manage.scanner import scanner
 
-from amqtt.client import MQTTClient, ClientException
+# Importing server-side libraries for MQTT communication
+from amqtt.mqtt.constants import QOS_1
 from amqtt.codecs import int_to_bytes_str
-from amqtt.mqtt.constants import QOS_1, QOS_2
-from kivymd.app import MDApp
-from kivy.uix.boxlayout import BoxLayout
-from kivymd.uix.datatables import MDDataTable
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDFlatButton
-from kivy.metrics import dp
-from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition, ObjectProperty
-from kivy.clock import Clock
-from kivy.graphics.texture import Texture
+from amqtt.client import MQTTClient, ClientException
 
-import kivy
+# Importing Kivy libraries for UI devlopment
+from kivy.metrics import dp
+from kivymd.app import MDApp
+from kivy.clock import Clock
+from kivy.uix.image import Image
+from kivymd.uix.dialog import MDDialog
+from kivy.uix.boxlayout import BoxLayout
+from kivy.graphics.texture import Texture
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.datatables import MDDataTable
+from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition 
+
+# Importing Kivy Builder library for UI support
 from kivy.core.window import Window
 from kivy.lang import Builder
 
+# Defining log path
 LOGFILE = "manage/data/history.log"
 
+# Kivy string for UI layout
 kv_string = """
 <LoginScreen>:
     BoxLayout:
@@ -247,40 +254,21 @@ kv_string = """
                 style: "standard"
                 on_press: root.save()
                 size_hint: (.1, None)
-
 """
 
-class programLogging():
-    def __init__(self) -> None:
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
-
-        #formats
-        format = logging.Formatter(" [%(levelname)s\t] :: %(asctime)s :: %(name)s :: %(message)s")
-        program_run = logging.Formatter(
-            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"+
-            ":::::::: %(asctime)s :: %(message)s ::::::::\n"+
-            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-            )
-
-        #setting up program run banner
-        newentry = logging.FileHandler(LOGFILE)
-        newentry.setLevel(logging.DEBUG)
-        newentry.setFormatter(program_run)
-        self.logger.addHandler(newentry)
-        self.logger.removeHandler(newentry)
-
-        #setting up file logging
-        file = logging.FileHandler(LOGFILE)
-        file.setLevel(logging.INFO)
-        file.setFormatter(format)
-        self.logger.addHandler(file)
-
+# Login screen class for handling user login
 class LoginScreen(Screen):
     def run_login(self, username, password):
         loop.run_until_complete(self.login(username, password))
 
     async def login(self, username, password):
+        """
+        logs in by sending a log in request to the server with password and username by publishing to 
+        the topic "AUTH_REQ/session_id" and subscribing to "AUT_RET/session_id" to listen to the result
+
+        :param username: 
+        :param password:
+        """
         print(f"Logging in with {username} and {password}")
         await c.publish(f"AUTH_REQ/{randomID}", int_to_bytes_str(f"{username}, {password}"), qos=0x01)
         await c.subscribe([(f"AUTH_RET/{randomID}", QOS_1)])
@@ -295,27 +283,49 @@ class LoginScreen(Screen):
         self.ids['username'].text = ""
         self.ids['password'].text = ""
         await c.unsubscribe([f"AUTH_RET/{randomID}"])
-        # self.manager.current = 'adminScreen'
-        # self.manager.get_screen('adminScreen').c = c
 
+# Admin screen class for handling admin operations
 class AdminScreen(Screen):
     def __init__(self, **kwargs):
+        """
+        Setting up of variables for the admin screen
+        """
+        # calling the __init()__ function of the class "Screen"
         super(AdminScreen, self).__init__(**kwargs)
         self.c = None
         self.camera_status = False
 
     def on_enter(self):
+        """
+        functions that run upon entering the admin screen
+        """
         self.load_table()
 
     def reload(self):
+        """
+        reload table in admin screen by first removing the first table 
+        and loading a new one
+        """
         self.remove_widget(self.data_tables)
         self.load_table()
 
     def search(self, query):
+        """
+        search for keywords in the table by removing the first table
+        and adding a new table with data that includes the search query
+
+        :param query: the query to search the table entries for
+        """
         self.remove_widget(self.data_tables)
         self.load_table_search(query)
 
     def load_table_search(self, query):
+        """
+        send a request to the server for items, filter through the items 
+        creates a new table and adds it to the admin screen
+
+        :param query: the query to search the table entries for
+        """
         loop.run_until_complete(self.load_data())
         layout = BoxLayout(orientation='vertical')
         self.data = []
@@ -350,6 +360,10 @@ class AdminScreen(Screen):
         return layout
     
     def load_table(self):
+        """
+        requests data from the server and adds it to the table
+        which is added into the admin screen
+        """
         loop.run_until_complete(self.load_data())
         layout = BoxLayout(orientation='vertical')
         self.data_tables = MDDataTable(
@@ -370,6 +384,14 @@ class AdminScreen(Screen):
         return layout
     
     def row_press(self, instance_table, instance_row):
+        """
+        this function is called when the row on the table is pressed
+        the screen is switched to product screen and all the fields are preset 
+        with the data of which the row is pressed. 
+
+        :param instance_table: table instance which was pressed
+        :param instance_row: row instance which was pressed
+        """
         selected_row_index = instance_row.index // 6
         product_row = [str(i) for i in self.data[selected_row_index]]
         self.manager.current = 'productScreen'
@@ -382,6 +404,12 @@ class AdminScreen(Screen):
         self.manager.get_screen('productScreen').quantity_available = product_row[5]
 
     async def load_data(self):
+        """
+        requests data from the server by requesting for data with the topic by publishing to
+        "DATA_REQ/id_num" and subscribing to the server with the topic "DATA_RET/id_num" where 
+        data is published back. 
+        The data is then parsed into a list
+        """
         await c.publish(f"DATA_REQ/{randomID}", int_to_bytes_str(f"data"), qos=0x01)
         await c.subscribe([(f"DATA_RET/{randomID}", QOS_1)])
         message = await c.deliver_message()
@@ -401,6 +429,16 @@ class AdminScreen(Screen):
             ))
 
     def scan(self):
+        """
+        starts scanner if scanner is not switched on and stops the scanner
+        if it is switched on
+
+        to start scanner, an image is added to the admin screen and is updated 
+        with a new image at 3fps using clock.schedule_interval
+
+        to stop scanner, the clock.schedule_interval is stopped and the image
+        widget is removed
+        """
         if self.camera_status == False:
             self.s = scanner(0, 1, 'Scanner')
             self.image = Image(
@@ -417,6 +455,14 @@ class AdminScreen(Screen):
     
 
     def display_frame(self, *args, **kwargs):
+        """
+        this uses the function from scan.py and returns a frame as well as any 
+        code it detected if any. if code is detected, scan() is called to stop 
+        the camera. 
+
+        else, the frame is converted into a texture to be displayed on the Image 
+        widget on the admin screen
+        """
         code, frame = self.s.scan()
         buffer = cv2.flip(frame,0).tostring()
         texture1 = Texture.create(size=(frame.shape[1],frame.shape[0]), colorfmt='bgr') 
@@ -427,6 +473,14 @@ class AdminScreen(Screen):
             self.scan() #switches off camera
     
     def product_found(self, code):
+        """
+        Checks whether the code is valid and displays the product screen page with all
+        the fields filled in.
+
+        else it shows an error. 
+
+        :param code: code to display or check
+        """
         product_id = code [-4:len(code)]
         item = self.s.code_check(product_id, self.data)
         if item == None:
@@ -442,6 +496,11 @@ class AdminScreen(Screen):
             self.manager.get_screen('productScreen').quantity_available = str(self.data[item][5])
 
     def show_error(self, error):
+        """
+        an error with the argument error is shown on kivy as a dialog
+
+        :param error: error message to be displayed
+        """
         self.dialog = MDDialog(
             title="Warning! Error",
             text=error,
@@ -457,11 +516,19 @@ class AdminScreen(Screen):
         self.dialog.open()
     
     def close_dialog(self, *args):
+        """
+        this function is called when the "OK" button on the error dialog 
+        is pressed to close the dialog
+        """
         if self.dialog:
             self.dialog.dismiss()
             self.dialog = None
     
     def add(self):
+        """
+        this function is called when the plus button on the admin screen is pressed 
+        to add a new product.
+        """
         self.manager.current = 'productScreen'
         self.manager.get_screen('productScreen').c = c
         self.manager.get_screen('productScreen').ids['product_id'].readonly = False
@@ -476,6 +543,10 @@ class ProductScreen(Screen):
         self.reset_field() 
 
     def cancel(self):
+        """
+        this function is called when the cancel button is pressed. the screen changes back to 
+        admin screen and all fields are reset. 
+        """
         self.reset_field()
         self.manager.current = 'adminScreen'
         self.manager.get_screen('adminScreen').c = c
@@ -484,6 +555,9 @@ class ProductScreen(Screen):
         self.ids['delete'].disabled = False
 
     def reset_field(self):
+        """
+        reset all input fields to blank
+        """
         self.product_id = ""
         self.product_name = ""
         self.category = ""
@@ -492,6 +566,11 @@ class ProductScreen(Screen):
         self.quantity_available = ""
     
     def on_enter(self, *args):
+        """
+        preset all the input fields to either 
+        1. nothing when an item is getting added
+        2. the respective data when an item is getting changed
+        """
         self.ids['product_id'].text = self.product_id
         self.ids['product_name'].text = self.product_name
         self.ids['category'].text = self.category
@@ -500,6 +579,11 @@ class ProductScreen(Screen):
         self.ids['quantity_available'].text = self.quantity_available
 
     def save(self):
+        """
+        this function is ran when the "save" button is pressed. 
+        it is sent to the server and listens to any errors sent back 
+        from the server. the error will be shown if there are any. 
+        """
         loop.run_until_complete(self.publish_new())
         error = loop.run_until_complete(self.error_check())
         if error == "None":
@@ -513,6 +597,11 @@ class ProductScreen(Screen):
             self.show_error(error) 
 
     async def publish_new(self):
+        """
+        parses the data in the input fields into a list which is converted into
+        a json text and published to the server. the data is published to add a product
+        OR to change a certain product 
+        """
         new_data = {
             "Product ID": self.ids['product_id'].text,
             "Product Name" : self.ids['product_name'].text,
@@ -527,6 +616,10 @@ class ProductScreen(Screen):
             await c.publish(f"DATA_PUB/{randomID}", int_to_bytes_str(json.dumps(new_data)),qos=0x01)
     
     async def error_check(self):
+        """
+        subscribes to the topic "DATA_ERROR/session_id" which will return the status of the data publish
+        or the data new publication and any erorrs that occur. 
+        """
         await c.subscribe([(f"DATA_ERROR/{randomID}", QOS_1)])
         message = await c.deliver_message()
         packet = message.publish_packet
@@ -534,6 +627,11 @@ class ProductScreen(Screen):
         return result
     
     def show_error(self, error):
+        """
+        an error with the argument error is shown on kivy as a dialog
+
+        :param error: error message to be displayed
+        """
         self.dialog = MDDialog(
             title="Warning! Error",
             text=error,
@@ -554,6 +652,9 @@ class ProductScreen(Screen):
             self.dialog = None
 
     def delete(self):
+        """
+        this function is run when the "delete" button on the product screen is pressed. 
+        """
         loop.run_until_complete(self.delete_data(self.ids['product_id'].text))
 
     async def delete_data(self, product_id):
@@ -567,6 +668,11 @@ class ProductScreen(Screen):
 
 class LoginApp(MDApp):
     async def uptime_coro(self):
+        """
+        connects the client to the server. Uses a standard username and password. 
+
+        makes c global so it can be accessed accross screens. 
+        """
         global c
         c = MQTTClient()
         try:
@@ -575,6 +681,9 @@ class LoginApp(MDApp):
             logger.error("Client exception: %s" % ce)
 
     def build(self):
+        """
+        set up screenmanager
+        """
         manager = ScreenManager(transition=NoTransition())
         manager.add_widget(LoginScreen(name="loginScreen"))
         manager.add_widget(AdminScreen(name="adminScreen"))
@@ -582,6 +691,15 @@ class LoginApp(MDApp):
         return manager
 
     def on_start(self):
+        """
+        makes loop and randomID global so it can be accessed accross screen
+
+        set up asyncio as well as kivy clock to run cocurrently to support kivy ui
+        and amqtt message handling. 
+
+        every 0.1 seconds, kivy clock will run run_asyncio_loop to give chance for asyncio amqtt message
+        handling to work. 
+        """
         # Start the asyncio event loop when the app starts
         global loop
         loop = asyncio.get_event_loop()
@@ -591,15 +709,26 @@ class LoginApp(MDApp):
         self.asyncio_loop_task = Clock.schedule_interval(self.run_asyncio_loop, 0.1)
 
     def run_asyncio_loop(self, *args):
+        """
+        stops the loop temporarily
+        runs the asyncio loop
+        """
         loop.stop()
         loop.run_forever()
 
     def on_stop(self):
+        """
+        these functions run when the app ends
+        the kivy clock is stopped and asyncio stops 
+        """
         # Stop the asyncio event loop when the app stops
         loop.stop()
         self.asyncio_loop_task.cancel()
 
 def random_ID_gen():
+    """
+    generates a random ID for session ID 
+    """
     character = "abcdefghijklmnopqrstupwxyz1234567890"
     auth_id = ""
     for i in range(5):
@@ -609,8 +738,9 @@ def random_ID_gen():
 logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
+    # Build the Kivy UI from the kv string
     Window.clearcolor = (241, 248, 232, 1)
     Builder.load_string(kv_string)
     Window.fullscreen = 'auto'
-    programLogging()
+
     LoginApp().run()
