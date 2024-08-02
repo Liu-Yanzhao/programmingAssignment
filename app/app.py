@@ -683,6 +683,8 @@ class ProductScreen(Screen):
         """
         publishes to DATA/DEL and sends the product ID of the item to delete. 
         changes screen back to admin screen
+
+        :param product_id: product id to delete
         """
         await c.publish(f"DATA_DEL/{randomID}", int_to_bytes_str(product_id),qos=0x01)
         self.reset_field()
