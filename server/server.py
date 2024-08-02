@@ -24,7 +24,7 @@ config = {
         "allow-anonymous": False,
         "plugins": ["auth_file", "auth_anonymous"],
         "password-file": os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "server_client_password.txt"
+            os.path.dirname(os.path.realpath(__file__)), "src/server_client_password.txt"
         ),
     },
     "topic-check": {
@@ -39,8 +39,10 @@ config = {
 # creating amqtt broker class
 broker = Broker(config)
 
-# set up a asynchronous function to subscribed to and publish AMQTT messages
 async def broker_coro():
+    """
+    asynchronous function to subscribed to and publish AMQTT messages
+    """
     await broker.start()  # wait for broker to start
     
     try:
@@ -102,6 +104,6 @@ async def broker_coro():
 # Run code
 if __name__ == '__main__':
     formatter = "[%(asctime)s] :: %(levelname)s :: %(name)s :: %(message)s"
-    logging.basicConfig(level=logging.DEBUG, format=formatter)  # for logging
+    logging.basicConfig(level=logging.INFO, format=formatter)  # for logging
     asyncio.get_event_loop().run_until_complete(broker_coro())  # to run asyncronous function forever
     asyncio.get_event_loop().run_forever()  # to run asyncronous function forever

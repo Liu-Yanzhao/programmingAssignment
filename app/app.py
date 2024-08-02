@@ -6,7 +6,7 @@ import logging # logging libraries for logging messages
 import asyncio # Asyncio library for asynchronous programming
 
 # Importing user-defined libraries
-from app.src.scanner import scanner
+from src.scanner import scanner
 
 # Importing server-side libraries for MQTT communication
 from amqtt.mqtt.constants import QOS_1
@@ -28,6 +28,10 @@ from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
 # Importing Kivy Builder library for UI support
 from kivy.lang import Builder
 from kivy.core.window import Window
+
+
+# Server IP address
+SERVER_IP = "127.0.0.1" # for testing purpose, the server ip is localhost
 
 # Kivy string for UI layout
 kv_string = """
@@ -256,6 +260,13 @@ kv_string = """
 # Login screen class for handling user login
 class LoginScreen(Screen):
     def run_login(self, username, password):
+        """
+        this function is run when the login button is pressed.
+        runs the asynchronous function login until it is complete
+
+        :param username: username
+        :param password: password
+        """
         loop.run_until_complete(self.login(username, password))
 
     async def login(self, username, password):
@@ -263,8 +274,8 @@ class LoginScreen(Screen):
         logs in by sending a log in request to the server with password and username by publishing to 
         the topic "AUTH_REQ/session_id" and subscribing to "AUT_RET/session_id" to listen to the result
 
-        :param username: 
-        :param password:
+        :param username: username
+        :param password: password
         """
         print(f"Logging in with {username} and {password}")
         await c.publish(f"AUTH_REQ/{randomID}", int_to_bytes_str(f"{username}, {password}"), qos=0x01)
@@ -294,7 +305,7 @@ class AdminScreen(Screen):
 
     def on_enter(self):
         """
-        functions that run upon entering the admin screen
+        run load_table upon entering the admin screen
         """
         self.load_table()
 
@@ -361,6 +372,10 @@ class AdminScreen(Screen):
         requests data from the server and adds it to the table
         which is added into the admin screen
         """
+
+        if hasattr(self, 'data_tables'):  # clears out old table
+            self.remove_widget(self.data_tables)
+
         loop.run_until_complete(self.load_data())
         layout = BoxLayout(orientation='vertical')
         self.data_tables = MDDataTable(
@@ -399,6 +414,7 @@ class AdminScreen(Screen):
         self.manager.get_screen('productScreen').description = product_row[3]
         self.manager.get_screen('productScreen').price = product_row[4]
         self.manager.get_screen('productScreen').quantity_available = product_row[5]
+        self.remove_widget(self.data_tables)
 
     async def load_data(self):
         """
@@ -437,7 +453,7 @@ class AdminScreen(Screen):
         widget is removed
         """
         if self.camera_status == False:
-            self.s = scanner(0, 1, 'Scanner')
+            self.s = scanner(0)
             self.image = Image(
                 pos_hint={'center_y': 0.5, 'center_x': 0.5}
             )
@@ -491,6 +507,7 @@ class AdminScreen(Screen):
             self.manager.get_screen('productScreen').description = self.data[item][3]
             self.manager.get_screen('productScreen').price = str(self.data[item][4])
             self.manager.get_screen('productScreen').quantity_available = str(self.data[item][5])
+            self.remove_widget(self.data_tables)
 
     def show_error(self, error):
         """
@@ -531,13 +548,17 @@ class AdminScreen(Screen):
         self.manager.get_screen('productScreen').ids['product_id'].readonly = False
         self.manager.get_screen('productScreen').new = True
         self.manager.get_screen('productScreen').ids['delete'].disabled = True
+        self.remove_widget(self.data_tables)
 
 
 class ProductScreen(Screen):
     def __init__(self, **kwargs):
+        """
+        initliatise product screen
+        """
         super(ProductScreen, self).__init__(**kwargs)
-        self.new = False
-        self.reset_field() 
+        self.new = False  # determines if "new" button is pressed
+        self.reset_field()  # reset all fields
 
     def cancel(self):
         """
@@ -644,6 +665,10 @@ class ProductScreen(Screen):
         self.dialog.open()
     
     def close_dialog(self, *args):
+        """
+        this function is called when the "OK" button on the error dialog 
+        is pressed to close the dialog
+        """
         if self.dialog:
             self.dialog.dismiss()
             self.dialog = None
@@ -655,6 +680,10 @@ class ProductScreen(Screen):
         loop.run_until_complete(self.delete_data(self.ids['product_id'].text))
 
     async def delete_data(self, product_id):
+        """
+        publishes to DATA/DEL and sends the product ID of the item to delete. 
+        changes screen back to admin screen
+        """
         await c.publish(f"DATA_DEL/{randomID}", int_to_bytes_str(product_id),qos=0x01)
         self.reset_field()
         self.manager.current = 'adminScreen'
@@ -666,14 +695,14 @@ class ProductScreen(Screen):
 class LoginApp(MDApp):
     async def uptime_coro(self):
         """
-        connects the client to the server. Uses a standard username and password. 
+        connects the client to the server. uses a standard username and password. 
 
         makes c global so it can be accessed accross screens. 
         """
         global c
         c = MQTTClient()
         try:
-            await c.connect("mqtt://auth_handler:auth_handler@127.0.0.1:1883")
+            await c.connect(f"mqtt://auth_handler:auth_handler@{SERVER_IP}:1883")
         except ClientException as ce:
             logger.error("Client exception: %s" % ce)
 
