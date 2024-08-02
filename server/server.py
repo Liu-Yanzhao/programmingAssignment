@@ -1,12 +1,12 @@
-import logging
-import asyncio
 import os
 import json
+import logging
+import asyncio
 from amqtt.broker import Broker
 from amqtt.client import MQTTClient
-from authentication import authentication
 
-from admin import admin
+from src.admin import admin
+from src.authentication import authentication
 
 from amqtt.codecs import int_to_bytes_str
 from amqtt.mqtt.constants import QOS_1, QOS_2
@@ -24,7 +24,7 @@ config = {
         "allow-anonymous": False,
         "plugins": ["auth_file", "auth_anonymous"],
         "password-file": os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "client_password.txt"
+            os.path.dirname(os.path.realpath(__file__)), "server_client_password.txt"
         ),
     },
     "topic-check": {

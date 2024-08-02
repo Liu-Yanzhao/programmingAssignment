@@ -6,7 +6,7 @@ import logging # logging libraries for logging messages
 import asyncio # Asyncio library for asynchronous programming
 
 # Importing user-defined libraries
-from manage.scanner import scanner
+from app.src.scanner import scanner
 
 # Importing server-side libraries for MQTT communication
 from amqtt.mqtt.constants import QOS_1
@@ -26,11 +26,8 @@ from kivymd.uix.datatables import MDDataTable
 from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition 
 
 # Importing Kivy Builder library for UI support
-from kivy.core.window import Window
 from kivy.lang import Builder
-
-# Defining log path
-LOGFILE = "manage/data/history.log"
+from kivy.core.window import Window
 
 # Kivy string for UI layout
 kv_string = """

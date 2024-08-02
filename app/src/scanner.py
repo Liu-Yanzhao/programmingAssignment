@@ -14,11 +14,9 @@ class scanner():
 
         if ret:
             code = self.decode_barcode(frame)
-            # cv2.imshow(self.window_name, frame)
             return code, frame
 
     def stop(self):
-        # cv2.destroyWindow(self.window_name)
         self.cap.release()
 
     def decode_barcode(self, frame):
