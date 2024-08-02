@@ -18,8 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from pathlib import Path
 import json
+from pathlib import Path
 
 class productNotFoundError(Exception):
     pass
@@ -29,15 +29,29 @@ class itemNotFoundError(Exception):
 
 class invalidValueError(Exception):
     def __init__(self, message):
+        """
+        custom invalid value error
+
+        :param message: error message
+        """
         self.message = message
 
 class admin():
     def __init__(self) -> None:
+        """
+        initiliaise admin class
+
+        retrieve product from products.json
+        """
         print("Starting as admin")
         self.retrieve_products()
         
 
     def retrieve_products(self):
+        """
+        open products.json file and load the json inside into self.products
+        retrieve keys and append them into self.products_key
+        """
         f = open(Path(__file__).resolve().parent / "data/products.json", "r")
         self.products = json.load(f)
         f.close()
@@ -46,16 +60,26 @@ class admin():
             self.products_key.append(key)
 
     def update_products(self):
-        '''
+        """
         update_product saves the current product json 
         in primary storage into json file in secondary storage
-        '''
+        """
         f = open(Path(__file__).resolve().parent / "data/products.json", "w")
         string_products = json.dumps(self.products)
         f.write(string_products)
         f.close()
 
     def new_product(self, product_id, product_name, category, description, price, quantity_available):
+        """
+        add new product
+
+        :param product_id: product id to be added
+        :param product_name: product name to be added
+        :param category: category to be added to
+        :param description: description of product to be added
+        :param price: price of product to be added
+        :param quantity_available: quantity of product to be added
+        """
         try:
             if product_id in self.products_key:
                 raise invalidValueError("provided new product ID is not unique")
@@ -85,16 +109,22 @@ class admin():
             return e
 
     def is_float(self, string):
+        """
+        check if the string is a float
+
+        :param string: string tot check if it a float 
+        """
         one_decimal_point = string.count('.') <= 1
         string_is_numeric = string.replace(".", "").isnumeric()
         return one_decimal_point and string_is_numeric
 
     def change_product(self, product_id, new):
-        ''' 
-        product is product id of the proudct
-        item can be: "Product ID", "Product Name", "Category", "Description", "Price", "Quantity Available"
-        new is the new value to update product
-        '''
+        """
+        change product
+
+        :param product_id: product_id that is to be changed
+        :param new: new dictionary of product to be changed
+        """
         try:
             # Error
             if not product_id in self.products:
@@ -128,10 +158,11 @@ class admin():
             return e
 
     def remove_product(self, product):
-        '''
+        """
         product can be removed entirely
-        product is the product id of the product
-        '''
+
+        :param product: the product id of the product
+        """
         try:
             if not product in self.products:
                 raise productNotFoundError
@@ -143,8 +174,8 @@ class admin():
         except productNotFoundError:
             print("product not found")
 
+# testing
 if __name__ == "__main__":
-    # testing
     c = admin()
     c.new_product("5001", "Blender", "Home Appliance", "spinny blade so cool!", 100, 100)
     c.change_product("1001", {

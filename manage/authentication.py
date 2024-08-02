@@ -23,15 +23,31 @@ from cryptography.fernet import Fernet
 
 class authentication():
     def __init__(self, username, password):
+        """
+        initialise authentication class
+        runs authentication upon initialisation
+
+        :param username: username
+        :param password: password
+        """
         self.authenticate(username, password)
 
-    def start_client(self):
+    def return_result(self):
+        """
+        returns result of authentication
+        """
         if self.result:
             return "authorised"
         else:
             return "unauthorised"
 
     def authenticate(self, username, password):
+        """
+        checks if username and password is correct
+
+        :param username: username
+        :param password: password
+        """
         if username == "" or password == "":
             self.result = False
         else:
@@ -55,11 +71,16 @@ class authentication():
                 print(f"Access Denied - {reason}")
 
     def _read_password_file(self):
+        """
+        read and decrypt password file
+
+        add users and passwords into self._users
+        """
         self._users = {}
         password_file = Path(__file__).resolve().parent / "data/passwords.ini"
         key_file = Path(__file__).resolve().parent / "data/fernet.key"
 
-        try:
+        try:  # get fernet key
             print(f"Reading user database from {key_file}")
             key = ""
             with open(key_file, "r") as fout:
@@ -79,7 +100,7 @@ class authentication():
 
         fernet = Fernet(key.encode())
 
-        try:
+        try:  # decrypt passwords
             print(f"Reading user database from {password_file}")
             with open(password_file, "r") as fout:
                 lines = fout.readlines()
@@ -89,7 +110,7 @@ class authentication():
                     else:
                         line = [i.strip() for i in line.strip("\n").split(":")]
                         self._users[line[0]] = fernet.decrypt(line[1].encode()).decode()
- 
+
             print(f"{len(self._users)} user(s) read from file {password_file}")
         except FileNotFoundError:
             print(f"Password file {password_file} not found")

@@ -63,7 +63,7 @@ async def broker_coro():
             if topic_name[0:9] == "AUTH_REQ/":  # if topic is authentication request
                 username, password = payload.split(", ")  # retrieve username and password
                 auth = authentication(username, password)  # initialise authentication class
-                result = auth.start_client()  # get authentication result
+                result = auth.return_result()  # get authentication result
                 await c.publish(f"AUTH_RET/{topic_name[9:14]}", int_to_bytes_str(result), qos=0x00)  # return authentication result back to client
 
             elif topic_name[0:9] == "DATA_REQ/":  # if topic is data request
