@@ -287,7 +287,6 @@ class LoginScreen(Screen):
 
         if result == "authorised":
             self.manager.current = 'adminScreen'
-            self.manager.get_screen('adminScreen').c = c
         self.ids['username'].text = ""
         self.ids['password'].text = ""
         await c.unsubscribe([f"AUTH_RET/{randomID}"])
@@ -300,7 +299,6 @@ class AdminScreen(Screen):
         """
         # calling the __init()__ function of the class "Screen"
         super(AdminScreen, self).__init__(**kwargs)
-        self.c = None
         self.camera_status = False
 
     def on_enter(self):
@@ -447,7 +445,7 @@ class AdminScreen(Screen):
         if it is switched on
 
         to start scanner, an image is added to the admin screen and is updated 
-        with a new image at 3fps using clock.schedule_interval
+        with a new image at 30fps using clock.schedule_interval
 
         to stop scanner, the clock.schedule_interval is stopped and the image
         widget is removed
@@ -500,7 +498,6 @@ class AdminScreen(Screen):
             self.show_error("Invalid Code")
         else:
             self.manager.current = 'productScreen'
-            self.manager.get_screen('productScreen').c = c
             self.manager.get_screen('productScreen').product_id = self.data[item][0]
             self.manager.get_screen('productScreen').product_name = self.data[item][1]
             self.manager.get_screen('productScreen').category = self.data[item][2]
@@ -607,7 +604,6 @@ class ProductScreen(Screen):
         if error == "None":
             self.reset_field()
             self.manager.current = 'adminScreen'
-            self.manager.get_screen('adminScreen').c = c
             self.ids['product_id'].readonly = True
             self.new = False
             self.ids['delete'].disabled = False
