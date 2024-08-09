@@ -118,12 +118,12 @@ class authentication():
             print(f"Password file {password_file} not found")
 
 if __name__ == "__main__":
+    auth = authentication("admin", "wrongPassword")
+    result = auth.return_result()
+    print(result)
+
+
     auth = authentication("admin", "adminPassword123")
-    result, c = auth.start_client()
+    result = auth.return_result()
+    print(result)
 
-    auth = authentication("admin", "newpassword")
-    result, c = auth.start_client()
-
-    auth = authentication("developer", "developerPassword123")
-    result, c = auth.start_client()
-    print(c._users)

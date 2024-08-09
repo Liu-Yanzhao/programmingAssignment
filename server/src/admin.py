@@ -86,7 +86,6 @@ class admin():
         :param quantity_available: quantity of product to be added
         """
         try:
-            print(product_id)
             if product_id == "":
                 raise invalidValueError("Product ID cannot be blank")
             if product_name == "":

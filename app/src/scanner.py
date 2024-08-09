@@ -20,7 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# Importing required libaries
 import cv2
+import time
 from pyzbar.pyzbar import decode, ZBarSymbol
 
 class scanner():
@@ -76,6 +78,14 @@ class scanner():
 
 
 if __name__ == "__main__":
-    s = scanner(0, 1, 'Scanner')
-    code = s.scan()
+    s = scanner(0)
+    while 1:
+        code, frame = s.scan()
+        cv2.imshow("test", frame)
+        if code:
+            break
+        if cv2.waitKey(1) & 0xFF == ord('q'):  # Press 'q' to exit the loop
+            break
+        time.sleep(1/30)
+    s.stop()
     print(code)
