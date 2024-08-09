@@ -1,3 +1,5 @@
+# Author: Liu Yanzhao
+# Admin No / Grp: 240333N / AA2402
 # Copyright (c) 2024 yamgao_
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,9 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# importing neccessary libraries
 import json
 from pathlib import Path
 
+# custom exceptions
 class productNotFoundError(Exception):
     pass
 
@@ -36,6 +40,7 @@ class invalidValueError(Exception):
         """
         self.message = message
 
+# admin class
 class admin():
     def __init__(self) -> None:
         """

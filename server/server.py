@@ -1,3 +1,26 @@
+# Author: Liu Yanzhao
+# Admin No / Grp: 240333N / AA2402
+# Copyright (c) 2024 yamgao_
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Importing required libraries
 import os
 import json
 import logging
@@ -5,9 +28,11 @@ import asyncio
 from amqtt.broker import Broker
 from amqtt.client import MQTTClient
 
+# Importing user-defined libraries
 from src.admin import admin
 from src.authentication import authentication
 
+# Importing important server functions
 from amqtt.codecs import int_to_bytes_str
 from amqtt.mqtt.constants import QOS_1, QOS_2
 
