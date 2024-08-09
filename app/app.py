@@ -29,9 +29,9 @@ from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
 from kivy.lang import Builder
 from kivy.core.window import Window
 
-
-# Server IP address
+# Constants
 SERVER_IP = "127.0.0.1" # for testing purpose, the server ip is localhost
+CAMERA_ID = 0  # Scanner camera id - usually 0, but might change if you have more than one camera
 
 # Kivy string for UI layout
 kv_string = """
@@ -323,16 +323,21 @@ class AdminScreen(Screen):
         :param query: the query to search the table entries for
         """
         self.remove_widget(self.data_tables)
-        self.load_table_search(query)
+        loop.run_until_complete(self.load_table_search(query))
 
-    def load_table_search(self, query):
+    async def load_table_search(self, query):
         """
         send a request to the server for items, filter through the items 
         creates a new table and adds it to the admin screen
 
         :param query: the query to search the table entries for
         """
-        loop.run_until_complete(self.load_data())
+        if hasattr(self, 'data_tables'):  # clears out old table
+            self.remove_widget(self.data_tables)
+
+        # prior to line 239 and 340, there was a race condition in the table that will cause the app to fail 20% of the time
+        await self.load_data()
+        await asyncio.sleep(1) 
         layout = BoxLayout(orientation='vertical')
         self.data = []
         for key in self.data_result:
@@ -364,7 +369,7 @@ class AdminScreen(Screen):
         self.add_widget(self.data_tables)
         self.ids['search'].text = ""
         return layout
-    
+
     def load_table(self):
         """
         requests data from the server and adds it to the table
@@ -451,7 +456,7 @@ class AdminScreen(Screen):
         widget is removed
         """
         if self.camera_status == False:
-            self.s = scanner(0)
+            self.s = scanner(CAMERA_ID)
             self.image = Image(
                 pos_hint={'center_y': 0.5, 'center_x': 0.5}
             )
@@ -760,6 +765,7 @@ def random_ID_gen():
     return auth_id
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
     # Build the Kivy UI from the kv string

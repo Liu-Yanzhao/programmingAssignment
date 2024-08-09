@@ -81,14 +81,19 @@ class admin():
         :param quantity_available: quantity of product to be added
         """
         try:
+            print(product_id)
+            if product_id == "":
+                raise invalidValueError("Product ID cannot be blank")
+            if product_name == "":
+                raise invalidValueError("Product Name cannot be blank")
             if product_id in self.products_key:
                 raise invalidValueError("provided new product ID is not unique")
             if not category in ["Electronics", "Mobile Devices", "Accessories", "Home Appliance", "Accessories"]:
-                raise invalidValueError("provided new product category is invalid")
+                raise invalidValueError("Provided new product category is invalid")
             if not self.is_float(str(price)):
-                raise invalidValueError("price is not a float")
+                raise invalidValueError("Price is not a positive float")
             if not str(quantity_available).isnumeric():
-                raise invalidValueError("Quanitity Available is not a whole number")
+                raise invalidValueError("Quanitity Available is not a positive whole number")
             
             self.products[product_id] = {
                 "Product Name": product_name,
@@ -127,6 +132,8 @@ class admin():
         """
         try:
             # Error
+            if product_id == "":
+                raise invalidValueError("Product ID cannot be blank")
             if not product_id in self.products:
                 raise productNotFoundError
             if len(new) != 5: 
@@ -134,12 +141,14 @@ class admin():
             for i in ["Product Name", "Category", "Description", "Price", "Quantity Available"]:
                 if i not in new:
                     raise itemNotFoundError
+            if new["Product Name"] == "":
+                raise invalidValueError("Product Name cannot be blank")
             if not new["Category"] in ["Electronics", "Mobile Devices", "Accessories", "Home Appliance", "Accessories"]:
                 raise invalidValueError("provided new product category is invalid")
             if not self.is_float(new["Price"]):
-                raise invalidValueError("price is not a float")
+                raise invalidValueError("Price is not a positive float")
             if not new["Quantity Available"].isnumeric():
-                raise invalidValueError("Quanitity Available is not a whole number")
+                raise invalidValueError("Quanitity Available is not a positive whole number")
     
             new["Price"] = float(new["Price"])
             new["Quantity Available"] = int(new["Quantity Available"])
