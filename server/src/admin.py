@@ -1,5 +1,10 @@
 # Author: Liu Yanzhao
 # Admin No / Grp: 240333N / AA2402
+
+#################################################################################
+## PLEASE MAKE SURE ALL PYTHON LIBARIRES ARE INSTALLED AND PYTHON 3.7* IS USED ##
+#################################################################################
+
 # Copyright (c) 2024 yamgao_
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
